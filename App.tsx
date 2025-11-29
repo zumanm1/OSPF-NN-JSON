@@ -12,7 +12,7 @@ import {
 import { DijkstraVisualizerModal } from './components/DijkstraVisualizerModal';
 import { NetworkHealthModal } from './components/NetworkHealthModal';
 import { RippleEffectModal } from './components/RippleEffectModal';
-import { ImpactAnalysisModal } from './components/ImpactAnalysisModal';
+// ImpactAnalysisModal component removed - real modal is implemented inline in App.tsx
 import { TopologyDesigner } from './components/TopologyDesigner';
 import { ScenarioPlanner } from './components/ScenarioPlanner';
 import { LinkInspector } from './components/LinkInspector';
@@ -26,9 +26,10 @@ import { getConvexHull, getCentroid, Point } from './services/geometry';
 import {
   COUNTRIES, BASE_COUNTRY_COLORS, DARK_MODE_COUNTRY_COLORS,
   DEFAULT_VISUAL_CONFIG, DEFAULT_PHYSICS_CONFIG,
-  NODES, LINKS
+  getInitialNodes, getInitialLinks
 } from './constants';
-import { useLocalStorage } from './hooks/useLocalStorage';
+import { useLocalStorage, getLocalStorageUsage } from './hooks/useLocalStorage';
+import { useNetworkData } from './hooks/useNetworkData';
 import { validateImportedJSON, validateExportedJSON } from './utils/jsonValidator';
 
 // --- Types ---
@@ -82,6 +83,10 @@ export default function App() {
   const networkRef = useRef<Network | null>(null);
   const [isNetworkInitialized, setIsNetworkInitialized] = useState(false);
 
+  // Initialize network data with immutable copies
+  const networkData = useNetworkData(getInitialNodes(), getInitialLinks());
+  const { nodes: NODES, links: LINKS } = networkData;
+
   const nodesDataSet = useRef<DataSet<VisNode>>(new DataSet<VisNode>([]));
   const edgesDataSet = useRef<DataSet<VisEdge>>(new DataSet<VisEdge>([]));
 
@@ -92,16 +97,27 @@ export default function App() {
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Visual Toggles & Settings
-  const [visualConfig, setVisualConfig] = useLocalStorage('ospf_visual_config', {
-    showHull: false, // Default is Hidden as requested
+  // Helper function - defined early for use in callbacks
+  const addLog = useCallback((msg: string) => {
+    const time = new Date().toLocaleTimeString();
+    setLogs(prev => [{ time, msg }, ...prev].slice(0, 50));
+  }, []);
+
+  // Visual Toggles & Settings with enhanced localStorage
+  const [visualConfig, setVisualConfig, visualConfigStorage] = useLocalStorage('ospf_visual_config', {
+    showHull: false,
     hullPadding: 20,
     hullFontSize: 40,
     nodeFontSize: 14,
     nodeSize: 20,
     linkWidth: 1
+  }, {
+    onQuotaExceeded: () => {
+      console.error('Visual config storage quota exceeded');
+      addLog('⚠️ Storage full - visual settings may not persist');
+    }
   });
-  const visualConfigRef = useRef(visualConfig); // Ref for render loop access
+  const visualConfigRef = useRef(visualConfig);
 
   // Impact Analysis State
   const [selectedEdgeId, setSelectedEdgeId] = useState<string | null>(null);
@@ -111,25 +127,39 @@ export default function App() {
   const [showImpactModal, setShowImpactModal] = useState(false);
   const [showVisualSettings, setShowVisualSettings] = useState(false);
   const [impactViewMode, setImpactViewMode] = useState<'flows' | 'countries'>('countries');
+  
+  // Performance optimization state
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
 
   // New Modals State
   const [isDijkstraModalOpen, setIsDijkstraModalOpen] = useState(false);
   const [isHealthModalOpen, setIsHealthModalOpen] = useState(false);
   const [isRippleModalOpen, setIsRippleModalOpen] = useState(false);
 
-  // Physics Configuration
-  const [physicsConfig, setPhysicsConfig] = useLocalStorage('ospf_physics_config', {
+  // Physics Configuration with enhanced localStorage
+  const [physicsConfig, setPhysicsConfig, physicsConfigStorage] = useLocalStorage('ospf_physics_config', {
     gravitationalConstant: -20000,
     springLength: 200,
     springConstant: 0.04
+  }, {
+    onQuotaExceeded: () => {
+      console.error('Physics config storage quota exceeded');
+      addLog('⚠️ Storage full - physics settings may not persist');
+    }
   });
 
-  // Country Filter State
-  const [activeCountries, setActiveCountries] = useLocalStorage<Record<string, boolean>>('ospf_active_countries', (() => {
+  // Country Filter State with enhanced localStorage
+  const [activeCountries, setActiveCountries, activeCountriesStorage] = useLocalStorage<Record<string, boolean>>('ospf_active_countries', (() => {
     const initial: Record<string, boolean> = {};
     Object.keys(COUNTRIES).forEach(c => initial[c] = true);
     return initial;
-  })());
+  })(), {
+    onQuotaExceeded: () => {
+      console.error('Country filter storage quota exceeded');
+      addLog('⚠️ Storage full - country filters may not persist');
+    }
+  });
   const activeCountriesRef = useRef(activeCountries);
 
   // New Link Creation State
@@ -143,8 +173,21 @@ export default function App() {
   const [showNewLinkModal, setShowNewLinkModal] = useState(false);
   const [selectedNodeForLink, setSelectedNodeForLink] = useState<string | null>(null);
 
-  // Custom Links Tracking (user-added links)
-  const [customLinks, setCustomLinks] = useLocalStorage<CustomLink[]>('ospf_custom_links', []);
+  // Custom Links Tracking (user-added links) with enhanced localStorage
+  const [customLinks, setCustomLinks, customLinksStorage] = useLocalStorage<CustomLink[]>('ospf_custom_links', [], {
+    onQuotaExceeded: () => {
+      alert(
+        '⚠️ Storage Full\n\n' +
+        'Cannot save more custom links - storage quota exceeded.\n\n' +
+        'Please export your topology to save your work.'
+      );
+      addLog('❌ Cannot save custom link - storage full');
+    },
+    onError: (error) => {
+      console.error('Custom links storage error:', error);
+      addLog('❌ Error saving custom links');
+    }
+  });
 
   // Topology Planner State (dropdown-based link creation)
   const [plannerFromNode, setPlannerFromNode] = useState<string>('');
@@ -260,11 +303,6 @@ export default function App() {
     const neighbors = LINKS.filter(l => l.a === nodeId || l.b === nodeId)
       .map(l => l.a === nodeId ? l.b : l.a);
     return [...new Set(neighbors)].map(nid => NODES.find(n => n.id === nid)?.name || nid).join(", ");
-  };
-
-  const addLog = (msg: string) => {
-    const time = new Date().toLocaleTimeString();
-    setLogs(prev => [{ time, msg }, ...prev].slice(0, 50));
   };
 
   // Helper to convert hex to rgba
@@ -561,7 +599,19 @@ export default function App() {
       }
       setIsNetworkInitialized(false);
     };
-  }, []); // Run once on mount
+  }, [isDark, customLinks, visualConfig.nodeSize, visualConfig.nodeFontSize, visualConfig.linkWidth, NODES, LINKS]); // Re-initialize when data or customLinks changes
+
+  // CRITICAL FIX: Re-render network when customLinks changes
+  useEffect(() => {
+    if (!isNetworkInitialized || !networkRef.current) return;
+    
+    // Rebuild edges to include custom links
+    const { visNodes, visEdges } = getInitialData();
+    edgesDataSet.current.clear();
+    edgesDataSet.current.add(visEdges);
+    
+    addLog(`Custom links updated: ${customLinks.length} custom link(s)`);
+  }, [customLinks, isNetworkInitialized, getInitialData]);
 
 
   // --- Actions ---
@@ -607,8 +657,19 @@ export default function App() {
     const currentNodes = nodesDataSet.current.get();
     const rawEdges = edgesDataSet.current.get();
 
+    // CRITICAL FIX: Filter nodes based on country visibility
+    const visibleNodes = currentNodes.filter(n => {
+      return !n.country || activeCountries[n.country] !== false;
+    });
+
+    // CRITICAL FIX: Filter edges where both endpoints are visible
+    const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+    const visibleEdges = rawEdges.filter(e => {
+      return visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to);
+    });
+
     // Apply temporary cost if provided
-    const effectiveEdges = rawEdges.map(e => {
+    const effectiveEdges = visibleEdges.map(e => {
       if (tempOverrideEdge && e.id === tempOverrideEdge.id) {
         return { ...e, cost: tempOverrideEdge.cost };
       }
@@ -632,7 +693,7 @@ export default function App() {
       dashes: false
     })));
 
-    const result = dijkstraDirected(src, dest, currentNodes, effectiveEdges);
+    const result = dijkstraDirected(src, dest, visibleNodes, effectiveEdges);
 
     if (!result) {
       addLog("No path found.");
@@ -750,108 +811,171 @@ export default function App() {
     return Array.from(aggregations.values()).sort((a, b) => b.totalFlows - a.totalFlows);
   };
 
+  // PERFORMANCE OPTIMIZATION: Use simplified synchronous calculation for now
+  // Web Worker implementation would require bundler configuration changes
   const handleSimulateImpact = (customEdges?: VisEdge[]) => {
     console.log('handleSimulateImpact started', { customEdges: !!customEdges, selectedEdgeId });
     if (!selectedEdgeId && !customEdges) return;
+    
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
     addLog("Simulating impact...");
 
-    const currentNodes = nodesDataSet.current.get();
-    const currentEdges = edgesDataSet.current.get();
-    console.log('handleSimulateImpact: Data fetched', { nodes: currentNodes.length, edges: currentEdges.length });
+    // Use setTimeout to allow UI to update with progress indicator
+    setTimeout(() => {
+      try {
+        const currentNodes = nodesDataSet.current.get();
+        const currentEdges = edgesDataSet.current.get();
+        console.log('handleSimulateImpact: Data fetched', { nodes: currentNodes.length, edges: currentEdges.length });
 
-    let modifiedEdges: VisEdge[];
-    let newEdgeIds: string[] = [];
+        // Filter nodes based on country visibility
+        const visibleNodes = currentNodes.filter(n => {
+          return !n.country || activeCountries[n.country] !== false;
+        });
 
-    if (customEdges) {
-      // For new link simulation
-      modifiedEdges = customEdges;
-      // Identify the new edges (they won't be in currentEdges)
-      // Actually, customEdges passed here usually contains ALL edges including the new ones.
-      // We need to find which ones are "new".
-      // In simulateNewLink, we append new edges to currentEdges.
-      // The new edges have IDs that are not in currentEdges.
-      const currentIds = new Set(currentEdges.map(e => e.id));
-      newEdgeIds = customEdges.filter(e => !currentIds.has(e.id)).map(e => e.id);
-    } else {
-      const selectedEdge = currentEdges.find(e => e.id === selectedEdgeId);
-      if (!selectedEdge) return;
+        // Filter edges where both endpoints are visible
+        const visibleNodeIds = new Set(visibleNodes.map(n => n.id));
+        const visibleCurrentEdges = currentEdges.filter(e => {
+          return visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to);
+        });
 
-      // Update both forward and reverse edges with same logical ID
-      modifiedEdges = currentEdges.map(e => {
-        if (e.logicalId === selectedEdge.logicalId) {
-          return { ...e, cost: proposedCost };
-        }
-        return e;
-      });
-    }
+        let modifiedEdges: VisEdge[];
+        let newEdgeIds: string[] = [];
 
-    const changes: ImpactResult[] = [];
-    const startTime = performance.now();
+        if (customEdges) {
+          modifiedEdges = customEdges.filter(e => {
+            return visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to);
+          });
+          const currentIds = new Set(visibleCurrentEdges.map(e => e.id));
+          newEdgeIds = modifiedEdges.filter(e => !currentIds.has(e.id)).map(e => e.id);
+        } else {
+          const selectedEdge = visibleCurrentEdges.find(e => e.id === selectedEdgeId);
+          if (!selectedEdge) {
+            setIsAnalyzing(false);
+            return;
+          }
 
-    console.log(`Starting simulation loop with ${NODES.length} nodes`);
-    for (const src of NODES) {
-      for (const dest of NODES) {
-        if (src.id === dest.id) continue;
-
-        const oldR = dijkstraDirected(src.id, dest.id, currentNodes, currentEdges);
-        const newR = dijkstraDirected(src.id, dest.id, currentNodes, modifiedEdges);
-
-        if (oldR && newR && (oldR.cost !== newR.cost || oldR.edges.length !== newR.edges.length || !oldR.edges.every(e => newR.edges.includes(e)))) {
-          const pathChanged = !oldR.edges.every(e => newR.edges.includes(e)) ||
-            oldR.edges.length !== newR.edges.length;
-
-          changes.push({
-            src,
-            dest,
-            oldCost: oldR.cost,
-            newCost: newR.cost,
-            oldPath: oldR.canonicalPath.map(id => NODES.find(n => n.id === id)?.name || id),
-            newPath: newR.canonicalPath.map(id => NODES.find(n => n.id === id)?.name || id),
-            isECMP: newR.isECMP,
-            wasECMP: oldR.isECMP,
-            impactType: determineImpactType(oldR, newR, newEdgeIds),
-            pathChanged
+          modifiedEdges = visibleCurrentEdges.map(e => {
+            if (e.logicalId === selectedEdge.logicalId) {
+              return { ...e, cost: proposedCost };
+            }
+            return e;
           });
         }
+
+        const changes: ImpactResult[] = [];
+        const startTime = performance.now();
+        const visibleRouters = NODES.filter(n => visibleNodeIds.has(n.id));
+        const totalPairs = visibleRouters.length * (visibleRouters.length - 1);
+        let processed = 0;
+
+        console.log(`Starting simulation loop with ${visibleRouters.length} visible nodes (filtered from ${NODES.length} total)`);
+        
+        for (const src of visibleRouters) {
+          for (const dest of visibleRouters) {
+            if (src.id === dest.id) continue;
+
+            const oldR = dijkstraDirected(src.id, dest.id, visibleNodes, visibleCurrentEdges);
+            const newR = dijkstraDirected(src.id, dest.id, visibleNodes, modifiedEdges);
+
+            if (oldR && newR && (oldR.cost !== newR.cost || oldR.edges.length !== newR.edges.length || !oldR.edges.every(e => newR.edges.includes(e)))) {
+              const pathChanged = !oldR.edges.every(e => newR.edges.includes(e)) ||
+                oldR.edges.length !== newR.edges.length;
+
+              changes.push({
+                src,
+                dest,
+                oldCost: oldR.cost,
+                newCost: newR.cost,
+                oldPath: oldR.canonicalPath.map(id => NODES.find(n => n.id === id)?.name || id),
+                newPath: newR.canonicalPath.map(id => NODES.find(n => n.id === id)?.name || id),
+                isECMP: newR.isECMP,
+                wasECMP: oldR.isECMP,
+                impactType: determineImpactType(oldR, newR, newEdgeIds),
+                pathChanged
+              });
+            }
+
+            processed++;
+            // Update progress every 50 calculations
+            if (processed % 50 === 0) {
+              setAnalysisProgress(Math.round((processed / totalPairs) * 100));
+            }
+          }
+        }
+
+        const duration = ((performance.now() - startTime) / 1000).toFixed(2);
+        console.log(`Simulation finished. Duration: ${duration}s. Changes found: ${changes.length}`);
+        const countryAggs = aggregateByCountry(changes);
+
+        setImpactResults(changes);
+        setCountryAggregations(countryAggs);
+        setShowImpactModal(true);
+        setIsAnalyzing(false);
+        setAnalysisProgress(100);
+
+        // Log summary
+        const costIncreases = changes.filter(c => c.impactType === 'cost_increase').length;
+        const costDecreases = changes.filter(c => c.impactType === 'cost_decrease').length;
+        const pathMigrations = changes.filter(c => c.pathChanged).length;
+
+        addLog(`Simulation done in ${duration}s. ${changes.length} flows impacted.`);
+        addLog(`  ↑ Cost increases: ${costIncreases} | ↓ Cost decreases: ${costDecreases} | ⇄ Path migrations: ${pathMigrations}`);
+      } catch (error) {
+        console.error('Impact analysis error:', error);
+        addLog('❌ Impact analysis failed');
+        setIsAnalyzing(false);
       }
-    }
-
-    const duration = ((performance.now() - startTime) / 1000).toFixed(2);
-    console.log(`Simulation finished. Duration: ${duration}s. Changes found: ${changes.length}`);
-    const countryAggs = aggregateByCountry(changes);
-
-    setImpactResults(changes);
-    setCountryAggregations(countryAggs);
-    console.log('Setting showImpactModal to true');
-    setShowImpactModal(true);
-
-    // Log summary
-    const costIncreases = changes.filter(c => c.impactType === 'cost_increase').length;
-    const costDecreases = changes.filter(c => c.impactType === 'cost_decrease').length;
-    const pathMigrations = changes.filter(c => c.pathChanged).length;
-
-    addLog(`Simulation done in ${duration}s. ${changes.length} flows impacted.`);
-    addLog(`  ↑ Cost increases: ${costIncreases} | ↓ Cost decreases: ${costDecreases} | ⇄ Path migrations: ${pathMigrations}`);
+    }, 100); // Short delay to allow UI to update
   };
+
+  // CRITICAL FIX: Support asymmetric cost changes
+  const [costChangeDirection, setCostChangeDirection] = useState<'forward' | 'reverse' | 'both'>('both');
 
   const applyCostChange = () => {
     if (!selectedEdgeId) return;
     const edge = edgesDataSet.current.get(selectedEdgeId);
     if (!edge) return;
 
-    // Update all edges with the same logical ID (both directions)
+    // Update edges based on selected direction
     const allEdges = edgesDataSet.current.get();
     const relatedEdges = allEdges.filter(e => e.logicalId === edge.logicalId);
 
-    const updates = relatedEdges.map(e => ({
-      id: e.id,
-      cost: proposedCost,
-      label: `${e.ifaceFrom} -> ${e.ifaceTo}\nCost: ${proposedCost}`
-    }));
+    const updates = relatedEdges.map(e => {
+      // Determine if this is forward or reverse direction
+      const isForward = (e.from === edge.from && e.to === edge.to);
+      
+      if (costChangeDirection === 'both') {
+        // Update both directions
+        return {
+          id: e.id,
+          cost: proposedCost,
+          label: `${e.ifaceFrom} -> ${e.ifaceTo}\nCost: ${proposedCost}`
+        };
+      } else if (costChangeDirection === 'forward' && isForward) {
+        // Update only forward direction
+        return {
+          id: e.id,
+          cost: proposedCost,
+          label: `${e.ifaceFrom} -> ${e.ifaceTo}\nCost: ${proposedCost}`
+        };
+      } else if (costChangeDirection === 'reverse' && !isForward) {
+        // Update only reverse direction
+        return {
+          id: e.id,
+          cost: proposedCost,
+          label: `${e.ifaceFrom} -> ${e.ifaceTo}\nCost: ${proposedCost}`
+        };
+      } else {
+        // No change for this edge
+        return { id: e.id };
+      }
+    });
 
     edgesDataSet.current.update(updates);
     setShowImpactModal(false);
-    addLog(`Cost updated for ${relatedEdges.length} edge(s).`);
+    const direction = costChangeDirection === 'both' ? 'both directions' : `${costChangeDirection} direction`;
+    addLog(`Cost updated for ${direction}.`);
   };
 
   const handleVisualizeFlow = (res: ImpactResult) => {
@@ -1125,55 +1249,82 @@ export default function App() {
 
   // Handler for Topology Designer
   const handleAddNode = (node: RouterNode) => {
-    // Add to NODES constant (in memory for now, ideally should persist)
-    NODES.push(node);
-    // Update VisJS
-    nodesDataSet.current.add({
-      id: node.id,
-      label: node.name,
-      title: `Router: ${node.name} (${node.country})`,
-      color: { background: COUNTRIES[node.country] || "#94a3b8", border: isDark ? '#94a3b8' : '#334155' },
-      country: node.country,
-      shape: "dot",
-      size: visualConfig.nodeSize,
-      font: { color: isDark ? '#e2e8f0' : '#1e293b', size: visualConfig.nodeFontSize }
-    });
-    addLog(`Node added: ${node.name}`);
+    // Use immutable state management instead of direct mutation
+    try {
+      networkData.addNode(node);
+      
+      // Update VisJS DataSet
+      nodesDataSet.current.add({
+        id: node.id,
+        label: node.name,
+        title: `Router: ${node.name} (${node.country})`,
+        color: { background: COUNTRIES[node.country] || "#94a3b8", border: isDark ? '#94a3b8' : '#334155' },
+        country: node.country,
+        shape: "dot",
+        size: visualConfig.nodeSize,
+        font: { color: isDark ? '#e2e8f0' : '#1e293b', size: visualConfig.nodeFontSize }
+      });
+      addLog(`Node added: ${node.name}`);
+    } catch (error) {
+      const err = error as Error;
+      addLog(`❌ Error adding node: ${err.message}`);
+      console.error('Error adding node:', error);
+    }
   };
 
   const handleRemoveNode = (nodeId: string) => {
-    const idx = NODES.findIndex(n => n.id === nodeId);
-    if (idx > -1) {
-      NODES.splice(idx, 1);
+    try {
+      // Use immutable state management
+      networkData.removeNode(nodeId);
+      
+      // Remove from VisJS
       nodesDataSet.current.remove(nodeId);
+      
       // Also remove connected edges
-      const edgesToRemove = edgesDataSet.current.get().filter(e => e.from === nodeId || e.to === nodeId).map(e => e.id);
+      const edgesToRemove = edgesDataSet.current.get()
+        .filter(e => e.from === nodeId || e.to === nodeId)
+        .map(e => e.id);
       edgesDataSet.current.remove(edgesToRemove);
+      
       addLog(`Node removed: ${nodeId}`);
+    } catch (error) {
+      const err = error as Error;
+      addLog(`❌ Error removing node: ${err.message}`);
+      console.error('Error removing node:', error);
     }
   };
 
   // Handler for importing design
   const handleImportDesign = (nodes: RouterNode[]) => {
-    // Clear existing nodes
-    NODES.length = 0;
-    nodesDataSet.current.clear();
-
-    // Add imported nodes
-    nodes.forEach(n => {
-      NODES.push(n);
-      nodesDataSet.current.add({
-        id: n.id,
-        label: n.name,
-        title: `Router: ${n.name} (${n.country})`,
-        color: { background: COUNTRIES[n.country] || "#94a3b8", border: isDark ? '#94a3b8' : '#334155' },
-        country: n.country,
-        shape: "dot",
-        size: visualConfig.nodeSize,
-        font: { color: isDark ? '#e2e8f0' : '#1e293b', size: visualConfig.nodeFontSize }
+    try {
+      // Use immutable state management - replaceAllData
+      networkData.replaceAllData(nodes, []);
+      
+      // Clear and rebuild VisJS
+      nodesDataSet.current.clear();
+      
+      nodes.forEach(n => {
+        nodesDataSet.current.add({
+          id: n.id,
+          label: n.name,
+          title: `Router: ${n.name} (${n.country})`,
+          color: { background: COUNTRIES[n.country] || "#94a3b8", border: isDark ? '#94a3b8' : '#334155' },
+          country: n.country,
+          shape: "dot",
+          size: visualConfig.nodeSize,
+          font: { color: isDark ? '#e2e8f0' : '#1e293b', size: visualConfig.nodeFontSize }
+        });
       });
-    });
-    addLog(`Design imported: ${nodes.length} nodes.`);
+      
+      // Fit network to view
+      networkRef.current?.fit({ animation: { duration: 500 } });
+      
+      addLog(`Design imported: ${nodes.length} nodes.`);
+    } catch (error) {
+      const err = error as Error;
+      addLog(`❌ Error importing design: ${err.message}`);
+      console.error('Error importing design:', error);
+    }
   };
 
   // Handler for saving scenario
@@ -1240,15 +1391,28 @@ export default function App() {
         }
 
         if (data.nodes && Array.isArray(data.nodes)) {
+          // Use immutable state management - DON'T mutate NODES array
+          const newNodes: RouterNode[] = data.nodes;
+          const newLinks: any[] = data.links && Array.isArray(data.links) ? data.links : [];
+          
           // Clear existing data
-          NODES.length = 0;
           nodesDataSet.current.clear();
           edgesDataSet.current.clear();
           setCustomLinks([]);
+          
+          // Replace all data with imported data
+          networkData.replaceAllData(newNodes, newLinks.map((l, idx) => ({
+            ...l,
+            a: l.source,
+            b: l.target,
+            ifA: l.source_interface || 'Imported',
+            ifB: l.target_interface || 'Imported',
+            costAB: l.forward_cost || l.cost || 10,
+            costBA: l.reverse_cost || l.cost || 10
+          })));
 
-          // Load Nodes
-          data.nodes.forEach((n: any) => {
-            NODES.push(n);
+          // Load Nodes into VisJS
+          newNodes.forEach((n: any) => {
             nodesDataSet.current.add({
               id: n.id,
               label: n.name,
@@ -1402,6 +1566,12 @@ export default function App() {
           // Load active countries if present
           if (data.activeCountries) {
             setActiveCountries(data.activeCountries);
+          }
+
+          // CRITICAL FIX: Fit network and stabilize physics after import
+          if (networkRef.current) {
+            networkRef.current.fit({ animation: { duration: 800 } });
+            networkRef.current.stabilize();
           }
 
           addLog(`Imported: ${data.nodes.length} nodes, ${data.links?.length || 0} links`);
@@ -2476,12 +2646,12 @@ export default function App() {
       <RippleEffectModal
         isOpen={isRippleModalOpen}
         onClose={() => setIsRippleModalOpen(false)}
+        nodes={Array.from(nodesDataSet.current.get())}
+        edges={Array.from(edgesDataSet.current.get())}
       />
 
-      <ImpactAnalysisModal
-        isOpen={showImpactModal}
-        onClose={() => setShowImpactModal(false)}
-      />
+      {/* NOTE: Real Impact Analysis Modal is rendered inline at line ~2265 */}
+      {/* The ImpactAnalysisModal component was a placeholder - removed to avoid duplicate rendering */}
 
     </div>
   );

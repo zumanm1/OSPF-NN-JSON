@@ -5263,18 +5263,49 @@ const RAW_DATA = {
   ]
 };
 
-// Exporting fully mapped constants
-export const NODES: RouterNode[] = RAW_DATA.nodes;
-export const LINKS: (LogicalLink & { a: string, b: string, ifA: string, ifB: string, costAB: number, costBA: number })[] = RAW_DATA.links.map(link => ({
-  ...link,
-  // Mapping new JSON fields to internal app fields for compatibility
-  a: link.source,
-  b: link.target,
-  ifA: link.source_interface,
-  ifB: link.target_interface,
-  costAB: link.forward_cost,
-  costBA: link.reverse_cost
-}));
+// Exporting IMMUTABLE constants with deep copy
+// IMPORTANT: These should NEVER be mutated directly
+// Use the useNetworkData hook or state management instead
+
+/**
+ * Gets a fresh copy of initial nodes
+ * @returns Deep copy of nodes array
+ */
+export function getInitialNodes(): RouterNode[] {
+  return JSON.parse(JSON.stringify(RAW_DATA.nodes));
+}
+
+/**
+ * Gets a fresh copy of initial links with mapped fields
+ * @returns Deep copy of links array with compatibility fields
+ */
+export function getInitialLinks(): (LogicalLink & { a: string, b: string, ifA: string, ifB: string, costAB: number, costBA: number })[] {
+  return RAW_DATA.links.map(link => ({
+    ...JSON.parse(JSON.stringify(link)),
+    // Mapping new JSON fields to internal app fields for compatibility
+    a: link.source,
+    b: link.target,
+    ifA: link.source_interface,
+    ifB: link.target_interface,
+    costAB: link.forward_cost,
+    costBA: link.reverse_cost
+  }));
+}
+
+// Legacy exports for backward compatibility (read-only reference)
+// WARNING: DO NOT MUTATE THESE - Use getInitialNodes() and getInitialLinks() instead
+export const NODES: Readonly<RouterNode[]> = Object.freeze(RAW_DATA.nodes.map(n => Object.freeze({...n})));
+export const LINKS: Readonly<(LogicalLink & { a: string, b: string, ifA: string, ifB: string, costAB: number, costBA: number })[]> = Object.freeze(
+  RAW_DATA.links.map(link => Object.freeze({
+    ...link,
+    a: link.source,
+    b: link.target,
+    ifA: link.source_interface,
+    ifB: link.target_interface,
+    costAB: link.forward_cost,
+    costBA: link.reverse_cost
+  }))
+);
 
 // Visual Configuration Defaults
 export const DEFAULT_VISUAL_CONFIG = {
