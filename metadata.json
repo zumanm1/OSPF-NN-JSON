@@ -1,0 +1,5 @@
+{
+  "name": "OSPF Visualizer Pro",
+  "description": "An interactive OSPF network topology visualizer with Dijkstra path animation, interface-level cost modeling, and export capabilities.",
+  "requestFramePermissions": []
+}

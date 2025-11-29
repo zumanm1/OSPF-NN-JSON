@@ -1,0 +1,774 @@
+{
+    "_TEMPLATE_INFO": {
+        "name": "OSPF Network Topology - Complete Template",
+        "version": "1.0",
+        "description": "Comprehensive template demonstrating ALL supported fields, interface types, and configurations",
+        "author": "OSPF Visualizer Pro",
+        "created": "2025-11-29",
+        "usage": "Download this template, customize with your network data, then import into OSPF Visualizer",
+        "format_types_supported": [
+            "unified",
+            "netviz-pro",
+            "legacy"
+        ],
+        "validation": "All fields are optional except those marked REQUIRED"
+    },
+    "version": "1.0",
+    "type": "ospf-topology",
+    "exportedFrom": "template",
+    "exportedAt": "2025-11-29T13:30:00.000Z",
+    "data": {
+        "nodes": [
+            {
+                "_comment": "=== ROUTER NODE - All Possible Fields ===",
+                "id": "usa-core-r1",
+                "name": "usa-core-r1",
+                "hostname": "usa-core-r1.example.com",
+                "loopback_ip": "10.0.0.1",
+                "management_ip": "192.168.1.1",
+                "country": "USA",
+                "is_active": true,
+                "node_type": "router",
+                "neighbor_count": 4,
+                "router_id": "10.0.0.1",
+                "ospf_area": "0.0.0.0",
+                "vendor": "Cisco",
+                "model": "ASR9000",
+                "ios_version": "7.3.2",
+                "location": {
+                    "city": "New York",
+                    "datacenter": "NYC-DC1",
+                    "rack": "R42",
+                    "coordinates": {
+                        "lat": 40.7128,
+                        "lon": -74.0060
+                    }
+                }
+            },
+            {
+                "_comment": "=== EDGE ROUTER ===",
+                "id": "gbr-edge-r2",
+                "name": "gbr-edge-r2",
+                "hostname": "gbr-edge-r2.example.com",
+                "loopback_ip": "10.0.0.2",
+                "country": "GBR",
+                "is_active": true,
+                "node_type": "router",
+                "neighbor_count": 3,
+                "ospf_area": "0.0.0.1"
+            },
+            {
+                "_comment": "=== DISTRIBUTION ROUTER ===",
+                "id": "deu-dist-r3",
+                "name": "deu-dist-r3",
+                "hostname": "deu-dist-r3.example.com",
+                "loopback_ip": "10.0.0.3",
+                "country": "DEU",
+                "is_active": true,
+                "node_type": "router",
+                "neighbor_count": 5
+            },
+            {
+                "_comment": "=== AGGREGATION ROUTER ===",
+                "id": "fra-agg-r4",
+                "name": "fra-agg-r4",
+                "hostname": "fra-agg-r4.example.com",
+                "loopback_ip": "10.0.0.4",
+                "country": "FRA",
+                "is_active": true,
+                "node_type": "router",
+                "neighbor_count": 2
+            },
+            {
+                "_comment": "=== REGIONAL ROUTER (Africa) ===",
+                "id": "zaf-regional-r5",
+                "name": "zaf-regional-r5",
+                "hostname": "zaf-regional-r5.example.com",
+                "loopback_ip": "10.0.0.5",
+                "country": "ZAF",
+                "is_active": true,
+                "node_type": "router",
+                "neighbor_count": 6
+            },
+            {
+                "_comment": "=== ADDITIONAL COUNTRIES ===",
+                "id": "zwe-r6",
+                "name": "zwe-r6",
+                "hostname": "zwe-r6.example.com",
+                "loopback_ip": "10.0.0.6",
+                "country": "ZWE",
+                "is_active": true,
+                "node_type": "router"
+            },
+            {
+                "id": "lso-r7",
+                "name": "lso-r7",
+                "hostname": "lso-r7.example.com",
+                "loopback_ip": "10.0.0.7",
+                "country": "LSO",
+                "is_active": true,
+                "node_type": "router"
+            },
+            {
+                "id": "moz-r8",
+                "name": "moz-r8",
+                "hostname": "moz-r8.example.com",
+                "loopback_ip": "10.0.0.8",
+                "country": "MOZ",
+                "is_active": true,
+                "node_type": "router"
+            },
+            {
+                "id": "prt-r9",
+                "name": "prt-r9",
+                "hostname": "prt-r9.example.com",
+                "loopback_ip": "10.0.0.9",
+                "country": "PRT",
+                "is_active": true,
+                "node_type": "router"
+            },
+            {
+                "id": "nga-r10",
+                "name": "nga-r10",
+                "hostname": "nga-r10.example.com",
+                "loopback_ip": "10.0.0.10",
+                "country": "NGA",
+                "is_active": true,
+                "node_type": "router"
+            }
+        ],
+        "links": [
+            {
+                "_comment": "=== LINK TYPE 1: GigabitEthernet - Symmetric ===",
+                "source": "usa-core-r1",
+                "target": "gbr-edge-r2",
+                "source_interface": "GigabitEthernet0/0/0/0",
+                "target_interface": "GigabitEthernet0/0/0/0",
+                "forward_cost": 10,
+                "reverse_cost": 10,
+                "cost": 10,
+                "status": "up",
+                "edge_type": "backbone",
+                "is_asymmetric": false,
+                "source_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "target_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 450,
+                    "forward_utilization_pct": 45,
+                    "reverse_traffic_mbps": 380,
+                    "reverse_utilization_pct": 38
+                },
+                "qos": {
+                    "class": "ef",
+                    "priority": "high"
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 2: TenGigabitEthernet - Asymmetric ===",
+                "source": "usa-core-r1",
+                "target": "deu-dist-r3",
+                "source_interface": "TenGigE0/0/0/1",
+                "target_interface": "TenGigE0/0/0/1",
+                "forward_cost": 5,
+                "reverse_cost": 15,
+                "cost": 5,
+                "status": "up",
+                "edge_type": "asymmetric",
+                "is_asymmetric": true,
+                "source_capacity": {
+                    "speed": "10G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 10000
+                },
+                "target_capacity": {
+                    "speed": "10G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 10000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 7500,
+                    "forward_utilization_pct": 75,
+                    "reverse_traffic_mbps": 2000,
+                    "reverse_utilization_pct": 20
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 3: HundredGigE - High Capacity ===",
+                "source": "usa-core-r1",
+                "target": "fra-agg-r4",
+                "source_interface": "HundredGigE0/0/0/2",
+                "target_interface": "HundredGigE0/0/0/2",
+                "forward_cost": 1,
+                "reverse_cost": 1,
+                "cost": 1,
+                "status": "up",
+                "edge_type": "backbone",
+                "is_asymmetric": false,
+                "source_capacity": {
+                    "speed": "100G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 100000
+                },
+                "target_capacity": {
+                    "speed": "100G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 100000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 45000,
+                    "forward_utilization_pct": 45,
+                    "reverse_traffic_mbps": 38000,
+                    "reverse_utilization_pct": 38
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 4: Bundle-Ether (LAG) - 2x10G ===",
+                "source": "gbr-edge-r2",
+                "target": "deu-dist-r3",
+                "source_interface": "Bundle-Ether100",
+                "target_interface": "Bundle-Ether100",
+                "forward_cost": 5,
+                "reverse_cost": 5,
+                "cost": 5,
+                "status": "up",
+                "edge_type": "backbone",
+                "is_asymmetric": false,
+                "source_capacity": {
+                    "speed": "20G",
+                    "is_bundle": true,
+                    "bundle_type": "bundle-ethernet",
+                    "member_count": 2,
+                    "member_speed": "10G",
+                    "member_interfaces": [
+                        "TenGigE0/0/0/10",
+                        "TenGigE0/0/0/11"
+                    ],
+                    "total_capacity_mbps": 20000
+                },
+                "target_capacity": {
+                    "speed": "20G",
+                    "is_bundle": true,
+                    "bundle_type": "bundle-ethernet",
+                    "member_count": 2,
+                    "member_speed": "10G",
+                    "member_interfaces": [
+                        "TenGigE0/0/0/10",
+                        "TenGigE0/0/0/11"
+                    ],
+                    "total_capacity_mbps": 20000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 12000,
+                    "forward_utilization_pct": 60,
+                    "reverse_traffic_mbps": 10000,
+                    "reverse_utilization_pct": 50
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 5: Bundle-Ether with VLAN (Subinterface) ===",
+                "source": "deu-dist-r3",
+                "target": "fra-agg-r4",
+                "source_interface": "Bundle-Ether200.100",
+                "target_interface": "Bundle-Ether200.100",
+                "forward_cost": 10,
+                "reverse_cost": 10,
+                "cost": 10,
+                "status": "up",
+                "edge_type": "backbone",
+                "is_asymmetric": false,
+                "vlan_id": 100,
+                "vlan_name": "OSPF_AREA_0",
+                "source_capacity": {
+                    "speed": "40G",
+                    "is_bundle": true,
+                    "bundle_type": "bundle-ethernet",
+                    "member_count": 4,
+                    "member_speed": "10G",
+                    "total_capacity_mbps": 40000
+                },
+                "target_capacity": {
+                    "speed": "40G",
+                    "is_bundle": true,
+                    "bundle_type": "bundle-ethernet",
+                    "member_count": 4,
+                    "member_speed": "10G",
+                    "total_capacity_mbps": 40000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 15000,
+                    "forward_utilization_pct": 37.5,
+                    "reverse_traffic_mbps": 18000,
+                    "reverse_utilization_pct": 45
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 6: GigabitEthernet with VLAN ===",
+                "source": "fra-agg-r4",
+                "target": "zaf-regional-r5",
+                "source_interface": "GigabitEthernet0/0/0/5.200",
+                "target_interface": "GigabitEthernet0/0/0/5.200",
+                "forward_cost": 50,
+                "reverse_cost": 50,
+                "cost": 50,
+                "status": "up",
+                "edge_type": "backbone",
+                "is_asymmetric": false,
+                "vlan_id": 200,
+                "vlan_name": "WAN_LINK",
+                "source_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "target_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 600,
+                    "forward_utilization_pct": 60,
+                    "reverse_traffic_mbps": 550,
+                    "reverse_utilization_pct": 55
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 7: Port-Channel (Cisco LAG) ===",
+                "source": "zaf-regional-r5",
+                "target": "zwe-r6",
+                "source_interface": "Port-channel10",
+                "target_interface": "Port-channel10",
+                "forward_cost": 20,
+                "reverse_cost": 20,
+                "cost": 20,
+                "status": "up",
+                "edge_type": "backbone",
+                "is_asymmetric": false,
+                "source_capacity": {
+                    "speed": "4G",
+                    "is_bundle": true,
+                    "bundle_type": "port-channel",
+                    "member_count": 4,
+                    "member_speed": "1G",
+                    "member_interfaces": [
+                        "Gi0/0/0/1",
+                        "Gi0/0/0/2",
+                        "Gi0/0/0/3",
+                        "Gi0/0/0/4"
+                    ],
+                    "total_capacity_mbps": 4000
+                },
+                "target_capacity": {
+                    "speed": "4G",
+                    "is_bundle": true,
+                    "bundle_type": "port-channel",
+                    "member_count": 4,
+                    "member_speed": "1G",
+                    "total_capacity_mbps": 4000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 2800,
+                    "forward_utilization_pct": 70,
+                    "reverse_traffic_mbps": 2400,
+                    "reverse_utilization_pct": 60
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 8: FastEthernet (Legacy) ===",
+                "source": "zwe-r6",
+                "target": "lso-r7",
+                "source_interface": "FastEthernet0/0",
+                "target_interface": "FastEthernet0/0",
+                "forward_cost": 100,
+                "reverse_cost": 100,
+                "cost": 100,
+                "status": "up",
+                "edge_type": "access",
+                "is_asymmetric": false,
+                "source_capacity": {
+                    "speed": "100M",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 100
+                },
+                "target_capacity": {
+                    "speed": "100M",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 100
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 75,
+                    "forward_utilization_pct": 75,
+                    "reverse_traffic_mbps": 60,
+                    "reverse_utilization_pct": 60
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 9: Serial Interface (WAN) ===",
+                "source": "lso-r7",
+                "target": "moz-r8",
+                "source_interface": "Serial0/0/0",
+                "target_interface": "Serial0/0/1",
+                "forward_cost": 500,
+                "reverse_cost": 600,
+                "cost": 500,
+                "status": "up",
+                "edge_type": "wan",
+                "is_asymmetric": true,
+                "encapsulation": "PPP",
+                "source_capacity": {
+                    "speed": "T1",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1.544
+                },
+                "target_capacity": {
+                    "speed": "T1",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1.544
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 1.2,
+                    "forward_utilization_pct": 77.7,
+                    "reverse_traffic_mbps": 0.8,
+                    "reverse_utilization_pct": 51.8
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 10: Tunnel Interface (GRE/IPSec) ===",
+                "source": "moz-r8",
+                "target": "prt-r9",
+                "source_interface": "Tunnel0",
+                "target_interface": "Tunnel0",
+                "forward_cost": 200,
+                "reverse_cost": 200,
+                "cost": 200,
+                "status": "up",
+                "edge_type": "tunnel",
+                "is_asymmetric": false,
+                "tunnel_type": "GRE",
+                "encryption": "IPSec",
+                "source_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "target_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 300,
+                    "forward_utilization_pct": 30,
+                    "reverse_traffic_mbps": 250,
+                    "reverse_utilization_pct": 25
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 11: Loopback (Virtual) ===",
+                "source": "prt-r9",
+                "target": "nga-r10",
+                "source_interface": "Loopback0",
+                "target_interface": "Loopback0",
+                "forward_cost": 1,
+                "reverse_cost": 1,
+                "cost": 1,
+                "status": "up",
+                "edge_type": "virtual",
+                "is_asymmetric": false,
+                "source_capacity": {
+                    "speed": "N/A",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 0
+                },
+                "target_capacity": {
+                    "speed": "N/A",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 0
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 0,
+                    "forward_utilization_pct": 0,
+                    "reverse_traffic_mbps": 0,
+                    "reverse_utilization_pct": 0
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 12: MPLS L3VPN ===",
+                "source": "usa-core-r1",
+                "target": "zaf-regional-r5",
+                "source_interface": "GigabitEthernet0/0/0/10",
+                "target_interface": "GigabitEthernet0/0/0/10",
+                "forward_cost": 150,
+                "reverse_cost": 150,
+                "cost": 150,
+                "status": "up",
+                "edge_type": "mpls",
+                "is_asymmetric": false,
+                "mpls_label": 100500,
+                "vrf": "CUSTOMER_A",
+                "source_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "target_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 400,
+                    "forward_utilization_pct": 40,
+                    "reverse_traffic_mbps": 350,
+                    "reverse_utilization_pct": 35
+                }
+            },
+            {
+                "_comment": "=== LINK TYPE 13: Down/Failed Link ===",
+                "source": "gbr-edge-r2",
+                "target": "zwe-r6",
+                "source_interface": "GigabitEthernet0/0/0/99",
+                "target_interface": "GigabitEthernet0/0/0/99",
+                "forward_cost": 10,
+                "reverse_cost": 10,
+                "cost": 10,
+                "status": "down",
+                "edge_type": "backup",
+                "is_asymmetric": false,
+                "failure_reason": "Link flapping detected",
+                "last_state_change": "2025-11-29T10:15:00Z",
+                "source_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "target_capacity": {
+                    "speed": "1G",
+                    "is_bundle": false,
+                    "total_capacity_mbps": 1000
+                },
+                "traffic": {
+                    "forward_traffic_mbps": 0,
+                    "forward_utilization_pct": 0,
+                    "reverse_traffic_mbps": 0,
+                    "reverse_utilization_pct": 0
+                }
+            }
+        ],
+        "customLinks": [
+            {
+                "_comment": "Custom links created by user in Designer mode",
+                "from": "usa-core-r1",
+                "to": "nga-r10",
+                "cost": 999,
+                "label": "Custom Test Link",
+                "created_at": "2025-11-29T12:00:00Z"
+            }
+        ],
+        "visualConfig": {
+            "_comment": "Visual display settings",
+            "showHull": true,
+            "hullPadding": 25,
+            "hullFontSize": 42,
+            "nodeFontSize": 14,
+            "nodeSize": 22,
+            "linkWidth": 2
+        },
+        "physicsConfig": {
+            "_comment": "Force-directed graph physics",
+            "gravitationalConstant": -25000,
+            "springLength": 250,
+            "springConstant": 0.05,
+            "damping": 0.09
+        },
+        "activeCountries": {
+            "_comment": "Country visibility toggles",
+            "USA": true,
+            "GBR": true,
+            "DEU": true,
+            "FRA": true,
+            "ZAF": true,
+            "ZWE": true,
+            "LSO": true,
+            "MOZ": true,
+            "PRT": true,
+            "NGA": true
+        },
+        "metadata": {
+            "_comment": "Topology metadata",
+            "totalNodes": 10,
+            "totalLinks": 13,
+            "customLinksCount": 1,
+            "topology_name": "Global OSPF Network",
+            "topology_description": "Multi-region OSPF backbone with diverse interface types",
+            "ospf_process_id": 1,
+            "ospf_router_id_format": "loopback0",
+            "network_type": "broadcast",
+            "hello_interval": 10,
+            "dead_interval": 40,
+            "authentication": "md5",
+            "areas": [
+                "0.0.0.0",
+                "0.0.0.1",
+                "0.0.0.2"
+            ],
+            "total_capacity_gbps": 200,
+            "average_utilization_pct": 45.5
+        }
+    },
+    "_FIELD_REFERENCE": {
+        "REQUIRED_FIELDS": {
+            "nodes": [
+                "id",
+                "name",
+                "country"
+            ],
+            "links": [
+                "source",
+                "target",
+                "forward_cost",
+                "reverse_cost"
+            ]
+        },
+        "OPTIONAL_FIELDS": {
+            "nodes": [
+                "hostname",
+                "loopback_ip",
+                "management_ip",
+                "is_active",
+                "node_type",
+                "neighbor_count",
+                "router_id",
+                "ospf_area",
+                "vendor",
+                "model",
+                "ios_version",
+                "location"
+            ],
+            "links": [
+                "source_interface",
+                "target_interface",
+                "cost",
+                "status",
+                "edge_type",
+                "is_asymmetric",
+                "source_capacity",
+                "target_capacity",
+                "traffic",
+                "vlan_id",
+                "vlan_name",
+                "qos",
+                "mpls_label",
+                "vrf",
+                "tunnel_type",
+                "encryption",
+                "encapsulation",
+                "failure_reason",
+                "last_state_change"
+            ]
+        },
+        "INTERFACE_TYPES_SUPPORTED": [
+            "GigabitEthernet",
+            "TenGigE",
+            "HundredGigE",
+            "FortyGigE",
+            "Bundle-Ether",
+            "Port-channel",
+            "FastEthernet",
+            "Serial",
+            "Tunnel",
+            "Loopback",
+            "Vlan",
+            "Management"
+        ],
+        "INTERFACE_NAMING_CONVENTIONS": {
+            "Cisco_IOS_XR": "GigabitEthernet0/0/0/0",
+            "Cisco_IOS": "GigabitEthernet0/0",
+            "Bundle": "Bundle-Ether100",
+            "Bundle_VLAN": "Bundle-Ether100.200",
+            "Port_Channel": "Port-channel10",
+            "Subinterface": "GigabitEthernet0/0/0/0.100"
+        },
+        "COUNTRY_CODES_SUPPORTED": [
+            "USA",
+            "GBR",
+            "DEU",
+            "FRA",
+            "ZAF",
+            "ZWE",
+            "LSO",
+            "MOZ",
+            "PRT",
+            "NGA",
+            "CAN",
+            "MEX",
+            "BRA",
+            "ARG",
+            "AUS",
+            "JPN",
+            "CHN",
+            "IND",
+            "RUS",
+            "SGP"
+        ],
+        "LINK_TYPES": [
+            "backbone",
+            "access",
+            "wan",
+            "mpls",
+            "tunnel",
+            "virtual",
+            "backup",
+            "asymmetric"
+        ],
+        "CAPACITY_SPEEDS": [
+            "100M",
+            "1G",
+            "10G",
+            "40G",
+            "100G",
+            "400G",
+            "T1",
+            "E1",
+            "DS3",
+            "OC3"
+        ]
+    },
+    "_USAGE_EXAMPLES": {
+        "minimal_topology": {
+            "version": "1.0",
+            "type": "ospf-topology",
+            "data": {
+                "nodes": [
+                    {
+                        "id": "r1",
+                        "name": "r1",
+                        "country": "USA"
+                    },
+                    {
+                        "id": "r2",
+                        "name": "r2",
+                        "country": "GBR"
+                    }
+                ],
+                "links": [
+                    {
+                        "source": "r1",
+                        "target": "r2",
+                        "forward_cost": 10,
+                        "reverse_cost": 10
+                    }
+                ]
+            }
+        },
+        "rich_topology": "See main template above"
+    }
+}

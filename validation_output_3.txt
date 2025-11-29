@@ -1,0 +1,35 @@
+Starting Impact Analysis Validation...
+Navigating to app...
+PAGE LOG: cdn.tailwindcss.com should not be used in production. To use Tailwind CSS in production, install it as a PostCSS plugin or use the Tailwind CLI: https://tailwindcss.com/docs/installation
+PAGE LOG: [vite] connecting...
+PAGE LOG: [vite] connected.
+PAGE LOG: %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+PAGE LOG: Failed to load resource: the server responded with a status of 404 (Not Found)
+App loaded.
+Locating Topology Planner...
+Found Topology Planner section.
+Selected Source: zaf-r1
+Selected Destination: lso-r1
+Select Values: zaf-r1, lso-r1
+Analyze Button Disabled: false
+PAGE LOG: Analyze Impact Clicked
+PAGE LOG: Calling simulateNewLink zaf-r1 lso-r1
+PAGE LOG: SimulateNewLink: Nodes found zaf-r1 lso-r1
+PAGE LOG: SimulateNewLink: Calling handleSimulateImpact
+PAGE LOG: handleSimulateImpact started JSHandle@object
+PAGE LOG: handleSimulateImpact: Data fetched JSHandle@object
+PAGE LOG: SimulateNewLink: handleSimulateImpact returned
+Clicked Analyze Impact.
+Test failed: TimeoutError: Waiting for selector `div.fixed.inset-0` failed
+    at CSSQueryHandler.waitFor (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/common/QueryHandler.js:211:46)
+    at async CdpFrame.waitForSelector (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/api/Frame.js:545:21)
+    at async CdpPage.waitForSelector (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/api/Page.js:1378:20)
+    at async file:///Users/macbook/OSPF-NN-JSON/validate-impact.js:93:21 {
+  cause: TimeoutError: Waiting failed: 30000ms exceeded
+      at new WaitTask (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/common/WaitTask.js:46:34)
+      at IsolatedWorld.waitForFunction (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/api/Realm.js:22:26)
+      at CSSQueryHandler.waitFor (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/common/QueryHandler.js:176:95)
+      at async CdpFrame.waitForSelector (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/api/Frame.js:545:21)
+      at async CdpPage.waitForSelector (file:///Users/macbook/node_modules/puppeteer-core/lib/esm/puppeteer/api/Page.js:1378:20)
+      at async file:///Users/macbook/OSPF-NN-JSON/validate-impact.js:93:21
+}

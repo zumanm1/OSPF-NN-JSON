@@ -1,0 +1,241 @@
+{
+  "version": "1.0",
+  "type": "ospf-topology",
+  "exportedFrom": "visualizer",
+  "exportedAt": "2025-11-29T11:25:17.879Z",
+  "data": {
+    "nodes": [
+      {
+        "id": "deu-r10",
+        "name": "deu-r10",
+        "hostname": "deu-r10",
+        "loopback_ip": "172.16.10.10",
+        "country": "DEU",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "gbr-r9",
+        "name": "gbr-r9",
+        "hostname": "gbr-r9",
+        "loopback_ip": "172.16.9.9",
+        "country": "GBR",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "usa-r8",
+        "name": "usa-r8",
+        "hostname": "usa-r8",
+        "loopback_ip": "172.16.8.8",
+        "country": "USA",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "zwe-r3",
+        "name": "zwe-r3",
+        "hostname": "zwe-r3",
+        "loopback_ip": "172.16.3.3",
+        "country": "ZWE",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "zwe-r1",
+        "name": "zwe-r1",
+        "hostname": "zwe-r1",
+        "loopback_ip": "172.16.1.1",
+        "country": "ZWE",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "zwe-r4",
+        "name": "zwe-r4",
+        "hostname": "zwe-r4",
+        "loopback_ip": "172.16.4.4",
+        "country": "ZWE",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "deu-r6",
+        "name": "deu-r6",
+        "hostname": "deu-r6",
+        "loopback_ip": "172.16.6.6",
+        "country": "DEU",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "zwe-r2",
+        "name": "zwe-r2",
+        "hostname": "zwe-r2",
+        "loopback_ip": "172.16.2.2",
+        "country": "ZWE",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "usa-r5",
+        "name": "usa-r5",
+        "hostname": "usa-r5",
+        "loopback_ip": "172.16.5.5",
+        "country": "USA",
+        "is_active": true,
+        "node_type": "router"
+      },
+      {
+        "id": "gbr-r7",
+        "name": "gbr-r7",
+        "hostname": "gbr-r7",
+        "loopback_ip": "172.16.7.7",
+        "country": "GBR",
+        "is_active": true,
+        "node_type": "router"
+      }
+    ],
+    "links": [
+      {
+        "source": "deu-r10",
+        "target": "usa-r5",
+        "forward_cost": 600,
+        "reverse_cost": 800
+      },
+      {
+        "source": "deu-r10",
+        "target": "zwe-r2",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "deu-r10",
+        "target": "deu-r6",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "gbr-r9",
+        "target": "usa-r8",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "usa-r8",
+        "target": "zwe-r4",
+        "forward_cost": 250,
+        "reverse_cost": 150
+      },
+      {
+        "source": "zwe-r3",
+        "target": "zwe-r4",
+        "forward_cost": 70,
+        "reverse_cost": 1130
+      },
+      {
+        "source": "zwe-r1",
+        "target": "zwe-r2",
+        "forward_cost": 200,
+        "reverse_cost": 300
+      },
+      {
+        "source": "zwe-r1",
+        "target": "zwe-r2",
+        "forward_cost": 1000,
+        "reverse_cost": 2000
+      },
+      {
+        "source": "zwe-r1",
+        "target": "zwe-r4",
+        "forward_cost": 10,
+        "reverse_cost": 1
+      },
+      {
+        "source": "deu-r6",
+        "target": "zwe-r4",
+        "forward_cost": 1,
+        "reverse_cost": 1
+      },
+      {
+        "source": "deu-r6",
+        "target": "gbr-r7",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "deu-r6",
+        "target": "gbr-r9",
+        "forward_cost": 180,
+        "reverse_cost": 90
+      },
+      {
+        "source": "zwe-r2",
+        "target": "zwe-r3",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "zwe-r2",
+        "target": "zwe-r3",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "usa-r5",
+        "target": "zwe-r3",
+        "forward_cost": 1,
+        "reverse_cost": 1
+      },
+      {
+        "source": "usa-r5",
+        "target": "usa-r8",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      },
+      {
+        "source": "gbr-r7",
+        "target": "zwe-r1",
+        "forward_cost": 500,
+        "reverse_cost": 400
+      },
+      {
+        "source": "gbr-r7",
+        "target": "gbr-r9",
+        "forward_cost": 10,
+        "reverse_cost": 10
+      }
+    ],
+    "customLinks": [],
+    "visualConfig": {
+      "showHull": false,
+      "hullPadding": 20,
+      "hullFontSize": 40,
+      "nodeFontSize": 14,
+      "nodeSize": 20,
+      "linkWidth": 1
+    },
+    "physicsConfig": {
+      "gravitationalConstant": -20000,
+      "springLength": 200,
+      "springConstant": 0.04
+    },
+    "activeCountries": {
+      "GBR": false,
+      "DEU": true,
+      "USA": false,
+      "ZWE": true,
+      "ZAF": true,
+      "FRA": true,
+      "LSO": false,
+      "NGA": false,
+      "PRT": false,
+      "MOZ": false
+    },
+    "metadata": {
+      "totalNodes": 10,
+      "totalLinks": 18,
+      "customLinksCount": 0
+    }
+  }
+}

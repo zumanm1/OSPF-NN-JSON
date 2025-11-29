@@ -1,0 +1,594 @@
+{
+  "nodes": [
+    {
+      "id": "zwe-r3",
+      "name": "zwe-r3",
+      "hostname": "zwe-r3",
+      "loopback_ip": "172.16.3.3",
+      "country": "ZWE",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 5
+    },
+    {
+      "id": "deu-r6",
+      "name": "deu-r6",
+      "hostname": "deu-r6",
+      "loopback_ip": "172.16.6.6",
+      "country": "DEU",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 10
+    },
+    {
+      "id": "deu-r10",
+      "name": "deu-r10",
+      "hostname": "deu-r10",
+      "loopback_ip": "172.16.10.10",
+      "country": "DEU",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 6
+    },
+    {
+      "id": "gbr-r7",
+      "name": "gbr-r7",
+      "hostname": "gbr-r7",
+      "loopback_ip": "172.16.7.7",
+      "country": "GBR",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 7
+    },
+    {
+      "id": "zwe-r1",
+      "name": "zwe-r1",
+      "hostname": "zwe-r1",
+      "loopback_ip": "172.16.1.1",
+      "country": "ZWE",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 4
+    },
+    {
+      "id": "usa-r8",
+      "name": "usa-r8",
+      "hostname": "usa-r8",
+      "loopback_ip": "172.16.8.8",
+      "country": "USA",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 6
+    },
+    {
+      "id": "usa-r1",
+      "name": "usa-r1",
+      "hostname": "usa-r1",
+      "loopback_ip": "172.16.1.1",
+      "country": "USA",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 4
+    },
+    {
+      "id": "zwe-r2",
+      "name": "zwe-r2",
+      "hostname": "zwe-r2",
+      "loopback_ip": "172.16.2.2",
+      "country": "ZWE",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 5
+    },
+    {
+      "id": "gbr-r9",
+      "name": "gbr-r9",
+      "hostname": "gbr-r9",
+      "loopback_ip": "172.16.9.9",
+      "country": "GBR",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 6
+    },
+    {
+      "id": "zim-r4",
+      "name": "zim-r4",
+      "hostname": "zim-r4",
+      "loopback_ip": "172.16.4.4",
+      "country": "ZIM",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 11
+    },
+    {
+      "id": "usa-r5",
+      "name": "usa-r5",
+      "hostname": "usa-r5",
+      "loopback_ip": "172.16.5.5",
+      "country": "USA",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 8
+    },
+    {
+      "id": "zim-r2",
+      "name": "zim-r2",
+      "hostname": "zim-r2",
+      "loopback_ip": "0.0.0.0",
+      "country": "ZIM",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 7
+    },
+    {
+      "id": "zim-r1",
+      "name": "zim-r1",
+      "hostname": "zim-r1",
+      "loopback_ip": "0.0.0.0",
+      "country": "ZIM",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 4
+    },
+    {
+      "id": "zim-r3",
+      "name": "zim-r3",
+      "hostname": "zim-r3",
+      "loopback_ip": "0.0.0.0",
+      "country": "ZIM",
+      "node_type": "router",
+      "is_active": true,
+      "neighbor_count": 5
+    }
+  ],
+  "links": [
+    {
+      "index": 0,
+      "source": "zwe-r3",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/7124",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 1,
+      "source": "zwe-r3",
+      "target": "usa-r5",
+      "source_interface": "Gi0/0/0/6159",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 2,
+      "source": "zwe-r3",
+      "target": "usa-r5",
+      "source_interface": "Gi0/0/0/5155",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 3,
+      "source": "zwe-r3",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/4120",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 4,
+      "source": "zwe-r3",
+      "target": "zim-r4",
+      "source_interface": "Gi0/0/0/1135",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 5,
+      "source": "deu-r6",
+      "target": "zim-r4",
+      "source_interface": "Gi0/0/0/6149",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 6,
+      "source": "deu-r6",
+      "target": "zim-r4",
+      "source_interface": "Gi0/0/0/5145",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 7,
+      "source": "deu-r6",
+      "target": "deu-r10",
+      "source_interface": "Gi0/0/0/4141",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 8,
+      "source": "deu-r6",
+      "target": "gbr-r9",
+      "source_interface": "Gi0/0/0/3152",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 9,
+      "source": "deu-r6",
+      "target": "gbr-r7",
+      "source_interface": "Gi0/0/0/1135",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 10,
+      "source": "deu-r10",
+      "target": "deu-r6",
+      "source_interface": "Gi0/0/0/4158",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 11,
+      "source": "deu-r10",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/3177",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 12,
+      "source": "deu-r10",
+      "target": "usa-r5",
+      "source_interface": "Gi0/0/0/1149",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 13,
+      "source": "gbr-r7",
+      "target": "gbr-r9",
+      "source_interface": "Gi0/0/0/4156",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 14,
+      "source": "gbr-r7",
+      "target": "zim-r1",
+      "source_interface": "Gi0/0/0/3125",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 15,
+      "source": "gbr-r7",
+      "target": "deu-r6",
+      "source_interface": "Gi0/0/0/1149",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 16,
+      "source": "zwe-r1",
+      "target": "gbr-r7",
+      "source_interface": "Gi0/0/0/4139",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 17,
+      "source": "zwe-r1",
+      "target": "zim-r4",
+      "source_interface": "Gi0/0/0/3139",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 18,
+      "source": "zwe-r1",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/2173",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 19,
+      "source": "zwe-r1",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/1169",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 20,
+      "source": "usa-r8",
+      "target": "zim-r4",
+      "source_interface": "Gi0/0/0/4142",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 21,
+      "source": "usa-r8",
+      "target": "gbr-r9",
+      "source_interface": "Gi0/0/0/3149",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 22,
+      "source": "usa-r8",
+      "target": "usa-r5",
+      "source_interface": "Gi0/0/0/1152",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 23,
+      "source": "usa-r1",
+      "target": "gbr-r7",
+      "source_interface": "Gi0/0/0/4174",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 24,
+      "source": "usa-r1",
+      "target": "zim-r4",
+      "source_interface": "Gi0/0/0/3172",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 25,
+      "source": "usa-r1",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/2147",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 26,
+      "source": "usa-r1",
+      "target": "zim-r2",
+      "source_interface": "Gi0/0/0/1143",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 27,
+      "source": "zwe-r2",
+      "target": "zim-r3",
+      "source_interface": "Gi0/0/0/6130",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 28,
+      "source": "zwe-r2",
+      "target": "zim-r3",
+      "source_interface": "Gi0/0/0/4179",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 29,
+      "source": "zwe-r2",
+      "target": "deu-r10",
+      "source_interface": "Gi0/0/0/3139",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 30,
+      "source": "zwe-r2",
+      "target": "zim-r1",
+      "source_interface": "Gi0/0/0/2179",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 31,
+      "source": "zwe-r2",
+      "target": "zim-r1",
+      "source_interface": "Gi0/0/0/1175",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 32,
+      "source": "gbr-r9",
+      "target": "gbr-r7",
+      "source_interface": "Gi0/0/0/4143",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 33,
+      "source": "gbr-r9",
+      "target": "deu-r6",
+      "source_interface": "Gi0/0/0/3154",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 34,
+      "source": "gbr-r9",
+      "target": "usa-r8",
+      "source_interface": "Gi0/0/0/1137",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 35,
+      "source": "zim-r4",
+      "target": "deu-r6",
+      "source_interface": "Gi0/0/0/6164",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 36,
+      "source": "zim-r4",
+      "target": "deu-r6",
+      "source_interface": "Gi0/0/0/5161",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 37,
+      "source": "zim-r4",
+      "target": "usa-r8",
+      "source_interface": "Gi0/0/0/4140",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 38,
+      "source": "zim-r4",
+      "target": "zim-r1",
+      "source_interface": "Gi0/0/0/3121",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 39,
+      "source": "zim-r4",
+      "target": "zim-r3",
+      "source_interface": "Gi0/0/0/1174",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 40,
+      "source": "usa-r5",
+      "target": "zim-r3",
+      "source_interface": "Gi0/0/0/6126",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 41,
+      "source": "usa-r5",
+      "target": "zim-r3",
+      "source_interface": "Gi0/0/0/5122",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 42,
+      "source": "usa-r5",
+      "target": "usa-r8",
+      "source_interface": "Gi0/0/0/3133",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    },
+    {
+      "index": 43,
+      "source": "usa-r5",
+      "target": "deu-r10",
+      "source_interface": "Gi0/0/0/1130",
+      "target_interface": "Unknown",
+      "status": "up",
+      "cost": 10,
+      "original_cost": 10
+    }
+  ],
+  "timestamp": "2025-11-23T09:05:52.021521",
+  "metadata": {
+    "node_count": 14,
+    "edge_count": 44,
+    "data_source": "pyats",
+    "snapshot_timestamp": "2025-11-23T09:05:52.021531",
+    "layout_algorithm": "force_directed"
+  }
+}
