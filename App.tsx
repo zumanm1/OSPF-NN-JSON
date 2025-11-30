@@ -667,12 +667,12 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
     }
 
     setPlaying(true);
-    const srcNode = NODES.find(n => n.id === src);
-    const destNode = NODES.find(n => n.id === dest);
-    addLog(`Finding path: ${srcNode?.name} -> ${destNode?.name}...`);
-
     const currentNodes = nodesDataSet.current.get();
     const rawEdges = edgesDataSet.current.get();
+    
+    const srcNode = currentNodes.find(n => n.id === src);
+    const destNode = currentNodes.find(n => n.id === dest);
+    addLog(`Finding path: ${srcNode?.label} -> ${destNode?.label}...`);
 
     // CRITICAL FIX: Filter nodes based on country visibility
     const visibleNodes = currentNodes.filter(n => {

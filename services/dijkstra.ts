@@ -7,9 +7,17 @@ export function dijkstraDirected(
   nodes: VisNode[],
   edges: VisEdge[]
 ): PathResult | null {
+  // DEBUG LOGGING
+  console.log(`🔍 DIJKSTRA DEBUG: start="${start}", goal="${goal}"`);
+  console.log(`🔍 DIJKSTRA DEBUG: nodes.length=${nodes.length}, edges.length=${edges.length}`);
+  console.log(`🔍 DIJKSTRA DEBUG: node IDs:`, nodes.map(n => n.id));
+  
   // Validate that start and goal nodes exist
   const nodeIds = new Set(nodes.map(n => n.id));
+  console.log(`🔍 DIJKSTRA DEBUG: nodeIds.has("${start}")=${nodeIds.has(start)}, nodeIds.has("${goal}")=${nodeIds.has(goal)}`);
+  
   if (!nodeIds.has(start) || !nodeIds.has(goal)) {
+    console.error(`❌ DIJKSTRA ERROR: Node not found - start="${start}" (${nodeIds.has(start)}), goal="${goal}" (${nodeIds.has(goal)})`);
     return null;
   }
   
