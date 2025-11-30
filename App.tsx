@@ -109,6 +109,8 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
 
   // State to track current nodes for dropdowns (synced with nodesDataSet)
   const [currentNodesList, setCurrentNodesList] = useState<VisNode[]>([]);
+  // State to track current edges for Analysis view (synced with edgesDataSet)
+  const [currentEdgesList, setCurrentEdgesList] = useState<VisEdge[]>([]);
 
   const [playing, setPlaying] = useState(false);
   const [source, setSource] = useState<string>("");
@@ -1618,6 +1620,10 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
           const importedVisNodes = nodesDataSet.current.get();
           setCurrentNodesList(importedVisNodes);
 
+          // CRITICAL FIX: Update the currentEdgesList state for Analysis view
+          const importedVisEdges = edgesDataSet.current.get();
+          setCurrentEdgesList(importedVisEdges);
+
           // CRITICAL FIX: Set source and destination to first two nodes after import
           if (importedVisNodes.length >= 2) {
             setSource(importedVisNodes[0].id);
@@ -1860,7 +1866,13 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
           />
         )}
 
-
+        {viewMode === 'ANALYSIS' && (
+          <CapacityAnalysis
+            nodes={currentNodesList}
+            edges={currentEdgesList}
+            isDark={isDark}
+          />
+        )}
 
         {/* Sidebar */}
         {viewMode === 'VISUALIZER' && (
