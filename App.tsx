@@ -107,6 +107,9 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
   const nodesDataSet = useRef<DataSet<VisNode>>(new DataSet<VisNode>([]));
   const edgesDataSet = useRef<DataSet<VisEdge>>(new DataSet<VisEdge>([]));
 
+  // State to track current nodes for dropdowns (synced with nodesDataSet)
+  const [currentNodesList, setCurrentNodesList] = useState<VisNode[]>([]);
+
   const [playing, setPlaying] = useState(false);
   const [source, setSource] = useState<string>("");
   const [destination, setDestination] = useState<string>("");
@@ -485,7 +488,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
 
       const countryCodes = [...new Set(NODES.map(n => n.country))];
 
-      countryCodes.forEach(code => {
+      countryCodes.forEach((code: string) => {
         if (!activeCountriesRef.current[code]) return;
         // Get all node IDs for this country
         const countryNodeIds = NODES.filter(n => n.country === code).map(n => n.id);
@@ -674,6 +677,13 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
     const destNode = currentNodes.find(n => n.id === dest);
     addLog(`Finding path: ${srcNode?.label} -> ${destNode?.label}...`);
 
+    // DEBUG: Log graph state
+    console.log('=== PATHFINDING DEBUG ===');
+    console.log(`Total nodes: ${currentNodes.length}`);
+    console.log(`Total raw edges: ${rawEdges.length}`);
+    console.log(`Source node:`, srcNode);
+    console.log(`Destination node:`, destNode);
+
     // CRITICAL FIX: Filter nodes based on country visibility
     const visibleNodes = currentNodes.filter(n => {
       return !n.country || activeCountries[n.country] !== false;
@@ -685,6 +695,9 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
       return visibleNodeIds.has(e.from) && visibleNodeIds.has(e.to);
     });
 
+    console.log(`Visible nodes: ${visibleNodes.length}`);
+    console.log(`Visible edges: ${visibleEdges.length}`);
+
     // Apply temporary cost if provided
     const effectiveEdges = visibleEdges.map(e => {
       if (tempOverrideEdge && e.id === tempOverrideEdge.id) {
@@ -692,6 +705,10 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
       }
       return e;
     });
+
+    console.log(`Effective edges count: ${effectiveEdges.length}`);
+    console.log(`Sample edges (first 3):`, effectiveEdges.slice(0, 3).map(e => ({ from: e.from, to: e.to, cost: e.cost })));
+    console.log('========================');
 
     // Reset visual state before animation
     const defaultEdgeColor = isDark ? '#334155' : '#cbd5e1';
@@ -712,8 +729,14 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
 
     const result = dijkstraDirected(src, dest, visibleNodes, effectiveEdges);
 
+    console.log(`Dijkstra result:`, result ? `Found path with ${result.canonicalPath.length} nodes, cost ${result.cost}` : 'NULL (no path)');
+
     if (!result) {
       addLog("No path found.");
+      console.error(`❌ NO PATH FOUND: ${src} -> ${dest}`);
+      console.error(`- Verify both nodes exist in visibleNodes`);
+      console.error(`- Verify edges exist connecting them`);
+      console.error(`- Check if country filters are hiding nodes`);
       setPlaying(false);
       return;
     }
@@ -1591,6 +1614,19 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
             networkRef.current.stabilize();
           }
 
+          // CRITICAL FIX: Update the currentNodesList state for dropdowns
+          const importedVisNodes = nodesDataSet.current.get();
+          setCurrentNodesList(importedVisNodes);
+
+          // CRITICAL FIX: Set source and destination to first two nodes after import
+          if (importedVisNodes.length >= 2) {
+            setSource(importedVisNodes[0].id);
+            setDestination(importedVisNodes[1].id);
+          } else if (importedVisNodes.length === 1) {
+            setSource(importedVisNodes[0].id);
+            setDestination(importedVisNodes[0].id);
+          }
+
           addLog(`Imported: ${data.nodes.length} nodes, ${data.links?.length || 0} links`);
         } else {
           alert("Invalid topology file format.");
@@ -1897,7 +1933,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
                       disabled={playing}
                       className="w-full pl-3 pr-8 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                     >
-                      {NODES.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}
+                      {currentNodesList.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
                     </select>
                   </div>
 
@@ -1919,7 +1955,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
                       disabled={playing}
                       className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none transition-colors"
                     >
-                      {NODES.map((n) => <option key={n.id} value={n.id}>{n.name}</option>)}
+                      {currentNodesList.map((n) => <option key={n.id} value={n.id}>{n.label}</option>)}
                     </select>
                   </div>
 
