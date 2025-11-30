@@ -284,3 +284,7 @@ function calculateResilienceScore(
 
 
 
+
+
+
+

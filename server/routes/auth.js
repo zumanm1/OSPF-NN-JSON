@@ -125,9 +125,9 @@ router.post('/login', async (req, res) => {
 
     const db = getDatabase();
 
-    // Find user by email or username
+    // Find user by email or username - include login tracking fields
     const user = await db.get(
-      'SELECT id, username, email, password_hash, full_name, role, is_active FROM users WHERE email = ? OR username = ?',
+      'SELECT id, username, email, password_hash, full_name, role, is_active, login_count, login_count_since_pwd_change, must_change_password FROM users WHERE email = ? OR username = ?',
       [identifier, identifier]
     );
 
@@ -162,10 +162,47 @@ router.post('/login', async (req, res) => {
       });
     }
 
-    // Update last login
+    // Check if user must change password
+    if (user.must_change_password === 1) {
+      return res.status(403).json({
+        error: 'Password change required',
+        message: 'You must change your password before logging in',
+        mustChangePassword: true
+      });
+    }
+
+    // Check login count limit (10 logins max before password change required)
+    const MAX_LOGINS_BEFORE_PASSWORD_CHANGE = 10;
+    const currentLoginCountSincePwdChange = user.login_count_since_pwd_change || 0;
+
+    if (currentLoginCountSincePwdChange >= MAX_LOGINS_BEFORE_PASSWORD_CHANGE) {
+      // Set must_change_password flag
+      await db.run(
+        'UPDATE users SET must_change_password = 1 WHERE id = ?',
+        [user.id]
+      );
+
+      // Log the enforcement
+      await db.run(
+        'INSERT INTO audit_log (user_id, action, ip_address, user_agent, details) VALUES (?, ?, ?, ?, ?)',
+        [user.id, 'PASSWORD_CHANGE_REQUIRED', req.ip, req.get('user-agent'), 'Max login count reached']
+      );
+
+      return res.status(403).json({
+        error: 'Password change required',
+        message: `You have reached the maximum number of logins (${MAX_LOGINS_BEFORE_PASSWORD_CHANGE}). Please change your password to continue.`,
+        mustChangePassword: true,
+        loginCount: currentLoginCountSincePwdChange
+      });
+    }
+
+    // Increment login counters
+    const newLoginCount = (user.login_count || 0) + 1;
+    const newLoginCountSincePwdChange = currentLoginCountSincePwdChange + 1;
+
     await db.run(
-      'UPDATE users SET last_login = CURRENT_TIMESTAMP WHERE id = ?',
-      [user.id]
+      'UPDATE users SET last_login = CURRENT_TIMESTAMP, login_count = ?, login_count_since_pwd_change = ? WHERE id = ?',
+      [newLoginCount, newLoginCountSincePwdChange, user.id]
     );
 
     // Log successful login
@@ -189,7 +226,10 @@ router.post('/login', async (req, res) => {
         username: user.username,
         email: user.email,
         fullName: user.full_name,
-        role: user.role
+        role: user.role,
+        loginCount: newLoginCount,
+        loginCountSincePwdChange: newLoginCountSincePwdChange,
+        loginsRemaining: MAX_LOGINS_BEFORE_PASSWORD_CHANGE - newLoginCountSincePwdChange
       }
     });
   } catch (error) {
@@ -308,19 +348,28 @@ router.post('/change-password', authenticateToken, async (req, res) => {
     const saltRounds = parseInt(process.env.BCRYPT_ROUNDS) || 12;
     const newPasswordHash = await bcrypt.hash(newPassword, saltRounds);
 
-    // Update password
+    // Update password and reset login counters
     await db.run(
-      'UPDATE users SET password_hash = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?',
+      `UPDATE users SET 
+        password_hash = ?, 
+        password_changed_at = CURRENT_TIMESTAMP,
+        login_count_since_pwd_change = 0,
+        must_change_password = 0,
+        updated_at = CURRENT_TIMESTAMP 
+      WHERE id = ?`,
       [newPasswordHash, req.user.id]
     );
 
     // Log password change
     await db.run(
-      'INSERT INTO audit_log (user_id, action, ip_address, user_agent) VALUES (?, ?, ?, ?)',
-      [req.user.id, 'PASSWORD_CHANGED', req.ip, req.get('user-agent')]
+      'INSERT INTO audit_log (user_id, action, ip_address, user_agent, details) VALUES (?, ?, ?, ?, ?)',
+      [req.user.id, 'PASSWORD_CHANGED', req.ip, req.get('user-agent'), 'User changed password, login counter reset']
     );
 
-    res.json({ message: 'Password changed successfully' });
+    res.json({ 
+      message: 'Password changed successfully',
+      loginCountReset: true
+    });
   } catch (error) {
     console.error('Change password error:', error);
     res.status(500).json({

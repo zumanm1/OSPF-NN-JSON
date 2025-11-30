@@ -7,7 +7,7 @@ import {
   Network as NetworkIcon, Link, Plus, Trash2, Save,
   Activity, AlertTriangle, Zap, X, ArrowRight, ArrowUpDown,
   Layers, Globe, Sliders, TrendingUp, TrendingDown, Route,
-  MapPin, Eye
+  MapPin, Eye, User as UserIcon, Key, LogOut
 } from 'lucide-react';
 import { PathComparisonModal } from './components/PathComparisonModal';
 import { NetworkHealthModal } from './components/NetworkHealthModal';
@@ -78,7 +78,24 @@ interface CustomLink {
   createdAt: Date;
 }
 
-export default function App() {
+interface AppUser {
+  id: number;
+  username: string;
+  email: string;
+  fullName?: string;
+  role: string;
+  loginCount?: number;
+  loginCountSincePwdChange?: number;
+  loginsRemaining?: number;
+}
+
+interface AppProps {
+  user?: AppUser | null;
+  onChangePassword?: () => void;
+  onLogout?: () => void;
+}
+
+export default function App({ user, onChangePassword, onLogout }: AppProps = {}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const networkRef = useRef<Network | null>(null);
   const [isNetworkInitialized, setIsNetworkInitialized] = useState(false);
@@ -1713,6 +1730,50 @@ export default function App() {
               Template
             </button>
           </div>
+
+          {/* User Info Badge - Only show if user is provided */}
+          {user && (
+            <div className="flex items-center gap-2 ml-2 bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-700">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
+                  <UserIcon className="w-3.5 h-3.5 text-white" />
+                </div>
+                <div className="text-xs">
+                  <div className="font-semibold text-slate-900 dark:text-white">{user.username}</div>
+                  <div className="text-[10px] text-slate-500 dark:text-slate-400">
+                    {user.role === 'admin' ? (
+                      <span className="text-amber-600 dark:text-amber-400">Admin</span>
+                    ) : (
+                      user.email
+                    )}
+                    {user.loginsRemaining !== undefined && user.loginsRemaining <= 3 && (
+                      <span className="ml-1 text-amber-600 dark:text-amber-400 font-bold">
+                        ({user.loginsRemaining} left)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+              {onChangePassword && (
+                <button
+                  onClick={onChangePassword}
+                  className="p-1.5 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded transition-colors"
+                  title="Change Password"
+                >
+                  <Key className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                </button>
+              )}
+              {onLogout && (
+                <button
+                  onClick={onLogout}
+                  className="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded transition-colors"
+                  title="Logout"
+                >
+                  <LogOut className="w-3.5 h-3.5 text-slate-600 dark:text-slate-400" />
+                </button>
+              )}
+            </div>
+          )}
         </div>
       </header>
 

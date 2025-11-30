@@ -2,13 +2,15 @@ import { StrictMode, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import { LoginPage } from './components/LoginPage.tsx';
+import { ChangePasswordModal } from './components/ChangePasswordModal.tsx';
 import { AuthProvider, useAuth } from './contexts/AuthContext.tsx';
 import './index.css';
-import { LogOut, User as UserIcon, AlertTriangle, RefreshCw, Shield } from 'lucide-react';
+import { LogOut, User as UserIcon, AlertTriangle, RefreshCw, Shield, Key } from 'lucide-react';
 
 function AuthenticatedApp() {
-  const { user, isLoading, isAuthenticated, logout, backendAvailable, backendError, checkBackendHealth } = useAuth();
+  const { user, isLoading, isAuthenticated, logout, backendAvailable, backendError, checkBackendHealth, mustChangePassword } = useAuth();
   const [isRetrying, setIsRetrying] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   // DEBUG: Log authentication state
   console.log('🔐 AuthenticatedApp Render State:', {
@@ -113,34 +115,23 @@ function AuthenticatedApp() {
 
   return (
     <div className="relative">
-      {/* User Info Header */}
-      <div className="absolute top-4 right-4 z-50 flex items-center gap-3">
-        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-lg px-4 py-2 flex items-center gap-3 border border-slate-200 dark:border-slate-700">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-full flex items-center justify-center">
-              <UserIcon className="w-4 h-4 text-white" />
-            </div>
-            <div className="text-sm">
-              <div className="font-medium text-slate-900 dark:text-white">{user?.username}</div>
-              <div className="text-xs text-slate-500 dark:text-slate-400">
-                {user?.role === 'admin' ? (
-                  <span className="text-amber-600 dark:text-amber-400">Administrator</span>
-                ) : (
-                  user?.email
-                )}
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={logout}
-            className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
-            title="Logout"
-          >
-            <LogOut className="w-4 h-4 text-slate-600 dark:text-slate-400" />
-          </button>
-        </div>
-      </div>
-      <App />
+      {/* Change Password Modal */}
+      <ChangePasswordModal
+        isOpen={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        onSuccess={() => {
+          // Optionally refresh user data here
+          setShowChangePassword(false);
+        }}
+        loginsRemaining={user?.loginsRemaining}
+      />
+
+      {/* Pass user info and handlers to App */}
+      <App 
+        user={user}
+        onChangePassword={() => setShowChangePassword(true)}
+        onLogout={logout}
+      />
     </div>
   );
 }

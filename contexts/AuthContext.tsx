@@ -6,6 +6,9 @@ interface User {
   email: string;
   fullName?: string;
   role: string;
+  loginCount?: number;
+  loginCountSincePwdChange?: number;
+  loginsRemaining?: number;
 }
 
 interface AuthContextType {
@@ -14,6 +17,7 @@ interface AuthContextType {
   isLoading: boolean;
   backendAvailable: boolean;
   backendError: string | null;
+  mustChangePassword: boolean;
   login: (email: string, password: string) => Promise<void>;
   register: (username: string, email: string, password: string, fullName?: string) => Promise<void>;
   logout: () => void;
@@ -31,6 +35,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [backendAvailable, setBackendAvailable] = useState(true);
   const [backendError, setBackendError] = useState<string | null>(null);
+  const [mustChangePassword, setMustChangePassword] = useState(false);
 
   // Check backend health
   const checkBackendHealth = useCallback(async (): Promise<boolean> => {
@@ -114,6 +119,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const data = await response.json();
 
+      // Check for password change required
+      if (response.status === 403 && data.mustChangePassword) {
+        setMustChangePassword(true);
+        throw new Error(data.message || 'Password change required');
+      }
+
       if (!response.ok) {
         throw new Error(data.message || 'Login failed');
       }
@@ -122,6 +133,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(data.user);
       setBackendAvailable(true);
       setBackendError(null);
+      setMustChangePassword(false);
       console.log('AuthContext: Login successful, saving token to localStorage:', data.token ? 'Token exists' : 'Token missing');
       localStorage.setItem('authToken', data.token);
     } catch (error) {
@@ -192,6 +204,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     isLoading,
     backendAvailable,
     backendError,
+    mustChangePassword,
     login,
     register,
     logout,
