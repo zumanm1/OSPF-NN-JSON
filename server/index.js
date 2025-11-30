@@ -99,16 +99,28 @@ function ipToNum(ip) {
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.includes(origin)) {
+    // In development, allow requests with no origin (e.g., Postman, curl)
+    // In production, require origin header for security
+    const isDevelopment = process.env.NODE_ENV !== 'production';
+    
+    if (!origin) {
+      if (isDevelopment) {
+        callback(null, true);
+      } else {
+        console.warn('⚠️ Blocked request with no origin header in production');
+        callback(new Error('Origin header required in production'));
+      }
+    } else if (allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      console.warn(`⚠️ Blocked request from unauthorized origin: ${origin}`);
+      callback(new Error(`Origin ${origin} not allowed by CORS`));
     }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  maxAge: 600 // Cache preflight requests for 10 minutes
 }));
 
 // IP-based access control middleware (optional - only if ALLOWED_IPS is restrictive)
@@ -185,8 +197,28 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Health check endpoint
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/api/health', async (req, res) => {
+  const health = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  };
+
+  // Check database connectivity
+  try {
+    const { getDatabase } = await import('./database/db.js');
+    const db = getDatabase();
+    await db.get('SELECT 1');
+    health.database = 'connected';
+  } catch (error) {
+    health.database = 'error';
+    health.status = 'degraded';
+    health.error = error.message;
+  }
+
+  const statusCode = health.status === 'ok' ? 200 : 503;
+  res.status(statusCode).json(health);
 });
 
 // Routes

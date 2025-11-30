@@ -126,9 +126,37 @@ export async function initDatabase() {
         token_hash TEXT NOT NULL,
         expires_at DATETIME NOT NULL,
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        last_activity DATETIME DEFAULT CURRENT_TIMESTAMP,
+        ip_address TEXT,
+        user_agent TEXT,
+        is_active INTEGER DEFAULT 1,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
     `);
+
+    // Add index on token_hash for faster lookups
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash);
+    `);
+
+    // Add index on user_id and is_active for active session queries
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_sessions_user_active ON sessions(user_id, is_active);
+    `);
+
+    // Add missing columns to sessions table (migration)
+    try {
+      await db.exec('ALTER TABLE sessions ADD COLUMN last_activity DATETIME DEFAULT CURRENT_TIMESTAMP');
+    } catch (e) { /* Column exists */ }
+    try {
+      await db.exec('ALTER TABLE sessions ADD COLUMN ip_address TEXT');
+    } catch (e) { /* Column exists */ }
+    try {
+      await db.exec('ALTER TABLE sessions ADD COLUMN user_agent TEXT');
+    } catch (e) { /* Column exists */ }
+    try {
+      await db.exec('ALTER TABLE sessions ADD COLUMN is_active INTEGER DEFAULT 1');
+    } catch (e) { /* Column exists */ }
 
     // Create audit log table
     await db.exec(`
@@ -203,10 +231,29 @@ export async function initDatabase() {
       CREATE INDEX IF NOT EXISTS idx_custom_links_user ON custom_links(user_id);
     `);
 
+    // Create password_history table for preventing password reuse
+    await db.exec(`
+      CREATE TABLE IF NOT EXISTS password_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        password_hash TEXT NOT NULL,
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+    `);
+
+    // Create index on password_history for user lookups
+    await db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_password_history_user ON password_history(user_id, created_at DESC);
+    `);
+
     console.log('✅ Database initialized successfully');
 
     // Create admin user if configured and doesn't exist
     await createAdminUser();
+
+    // Start cleanup jobs
+    startCleanupJobs();
 
     return db;
   } catch (error) {
@@ -287,4 +334,159 @@ export async function closeDatabase() {
   }
 }
 
-export default { initDatabase, getDatabase, closeDatabase };
+/**
+ * Start background cleanup jobs
+ */
+function startCleanupJobs() {
+  // Cleanup expired sessions every hour
+  setInterval(async () => {
+    try {
+      if (!db) return;
+      
+      const result = await db.run(
+        'DELETE FROM sessions WHERE expires_at < datetime("now") OR (is_active = 0 AND last_activity < datetime("now", "-7 days"))'
+      );
+      
+      if (result.changes > 0) {
+        console.log(`🧹 Cleaned up ${result.changes} expired/inactive sessions`);
+      }
+    } catch (error) {
+      console.error('Error cleaning up sessions:', error);
+    }
+  }, 60 * 60 * 1000); // Every hour
+
+  // Cleanup old audit logs every day (keep 90 days)
+  setInterval(async () => {
+    try {
+      if (!db) return;
+      
+      const result = await db.run(
+        'DELETE FROM audit_log WHERE created_at < datetime("now", "-90 days")'
+      );
+      
+      if (result.changes > 0) {
+        console.log(`🧹 Cleaned up ${result.changes} old audit log entries`);
+      }
+    } catch (error) {
+      console.error('Error cleaning up audit logs:', error);
+    }
+  }, 24 * 60 * 60 * 1000); // Every 24 hours
+
+  console.log('✅ Cleanup jobs started');
+}
+
+/**
+ * Create or update session for a token
+ */
+export async function createSession(userId, tokenHash, expiresAt, ipAddress, userAgent) {
+  if (!db) throw new Error('Database not initialized');
+  
+  await db.run(
+    `INSERT INTO sessions (user_id, token_hash, expires_at, ip_address, user_agent, is_active) 
+     VALUES (?, ?, ?, ?, ?, 1)`,
+    [userId, tokenHash, expiresAt, ipAddress, userAgent]
+  );
+}
+
+/**
+ * Revoke a session by token hash
+ */
+export async function revokeSession(tokenHash) {
+  if (!db) throw new Error('Database not initialized');
+  
+  await db.run(
+    'UPDATE sessions SET is_active = 0, last_activity = CURRENT_TIMESTAMP WHERE token_hash = ?',
+    [tokenHash]
+  );
+}
+
+/**
+ * Revoke all sessions for a user
+ */
+export async function revokeAllUserSessions(userId) {
+  if (!db) throw new Error('Database not initialized');
+  
+  const result = await db.run(
+    'UPDATE sessions SET is_active = 0, last_activity = CURRENT_TIMESTAMP WHERE user_id = ? AND is_active = 1',
+    [userId]
+  );
+  
+  return result.changes;
+}
+
+/**
+ * Check if a session is valid
+ */
+export async function isSessionValid(tokenHash) {
+  if (!db) throw new Error('Database not initialized');
+  
+  const session = await db.get(
+    'SELECT id FROM sessions WHERE token_hash = ? AND is_active = 1 AND expires_at > datetime("now")',
+    [tokenHash]
+  );
+  
+  return !!session;
+}
+
+/**
+ * Get active sessions for a user
+ */
+export async function getUserSessions(userId) {
+  if (!db) throw new Error('Database not initialized');
+  
+  return await db.all(
+    `SELECT id, created_at, last_activity, ip_address, user_agent, expires_at 
+     FROM sessions 
+     WHERE user_id = ? AND is_active = 1 AND expires_at > datetime("now")
+     ORDER BY last_activity DESC`,
+    [userId]
+  );
+}
+
+/**
+ * Add password to history
+ */
+export async function addPasswordToHistory(userId, passwordHash) {
+  if (!db) throw new Error('Database not initialized');
+  
+  await db.run(
+    'INSERT INTO password_history (user_id, password_hash) VALUES (?, ?)',
+    [userId, passwordHash]
+  );
+
+  // Keep only last 5 passwords
+  await db.run(
+    `DELETE FROM password_history 
+     WHERE user_id = ? AND id NOT IN (
+       SELECT id FROM password_history 
+       WHERE user_id = ? 
+       ORDER BY created_at DESC 
+       LIMIT 5
+     )`,
+    [userId, userId]
+  );
+}
+
+/**
+ * Check if password was used recently
+ */
+export async function isPasswordInHistory(userId, newPassword) {
+  if (!db) throw new Error('Database not initialized');
+  
+  const history = await db.all(
+    'SELECT password_hash FROM password_history WHERE user_id = ? ORDER BY created_at DESC LIMIT 5',
+    [userId]
+  );
+
+  // Check against each historical password
+  for (const record of history) {
+    const isMatch = await bcrypt.compare(newPassword, record.password_hash);
+    if (isMatch) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export default { initDatabase, getDatabase, closeDatabase, createSession, revokeSession, revokeAllUserSessions, isSessionValid, getUserSessions, addPasswordToHistory, isPasswordInHistory };
