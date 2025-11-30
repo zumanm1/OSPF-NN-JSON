@@ -34,9 +34,11 @@ if (missingEnvVars.length > 0) {
 }
 
 // Validate JWT_SECRET strength
-if (process.env.JWT_SECRET && process.env.JWT_SECRET.length < 32) {
-  console.warn('⚠️  WARNING: JWT_SECRET should be at least 32 characters for security.');
-  console.warn('💡 Generate a strong secret: openssl rand -base64 32');
+if (!process.env.JWT_SECRET || process.env.JWT_SECRET.length < 32) {
+  console.error('❌ CRITICAL SECURITY ERROR: JWT_SECRET must be at least 32 characters long!');
+  console.error('💡 Generate a strong secret with: openssl rand -base64 32');
+  console.error('📝 Add it to your .env file as: JWT_SECRET=<generated_secret>');
+  process.exit(1);
 }
 
 console.log('✅ Environment variables validated successfully');
@@ -138,6 +140,44 @@ const limiter = rateLimit({
   legacyHeaders: false,
 });
 
+// Strict rate limiting for authentication endpoints
+const authLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 5, // 5 login attempts
+  message: {
+    error: 'Too many login attempts',
+    message: 'Too many login attempts from this IP, please try again after 15 minutes.',
+    retryAfter: 15 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  skipSuccessfulRequests: true, // Don't count successful logins
+});
+
+const authRegisterLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 3, // 3 registration attempts per hour
+  message: {
+    error: 'Too many registration attempts',
+    message: 'Too many registration attempts from this IP, please try again after 1 hour.',
+    retryAfter: 60 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authPasswordChangeLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000, // 1 hour
+  max: 10, // 10 password change attempts per hour
+  message: {
+    error: 'Too many password change attempts',
+    message: 'Too many password change attempts, please try again later.',
+    retryAfter: 60 * 60
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
 app.use('/api/', limiter);
 
 // Body parsing middleware
@@ -150,6 +190,9 @@ app.get('/api/health', (req, res) => {
 });
 
 // Routes
+app.use('/api/auth/login', authLoginLimiter);
+app.use('/api/auth/register', authRegisterLimiter);
+app.use('/api/auth/change-password', authPasswordChangeLimiter);
 app.use('/api/auth', authRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/custom-links', customLinksRoutes);

@@ -250,7 +250,7 @@ router.get('/me', authenticateToken, async (req, res) => {
     const db = getDatabase();
     
     const user = await db.get(
-      'SELECT id, username, email, full_name, role, created_at, last_login FROM users WHERE id = ?',
+      'SELECT id, username, email, full_name, role, created_at, last_login, login_count, login_count_since_pwd_change, must_change_password FROM users WHERE id = ?',
       [req.user.id]
     );
 
@@ -260,6 +260,11 @@ router.get('/me', authenticateToken, async (req, res) => {
       });
     }
 
+    // Calculate logins remaining before password change required
+    const MAX_LOGINS_BEFORE_PASSWORD_CHANGE = 10;
+    const loginCountSincePwdChange = user.login_count_since_pwd_change || 0;
+    const loginsRemaining = MAX_LOGINS_BEFORE_PASSWORD_CHANGE - loginCountSincePwdChange;
+
     res.json({
       user: {
         id: user.id,
@@ -268,7 +273,11 @@ router.get('/me', authenticateToken, async (req, res) => {
         fullName: user.full_name,
         role: user.role,
         createdAt: user.created_at,
-        lastLogin: user.last_login
+        lastLogin: user.last_login,
+        loginCount: user.login_count,
+        loginCountSincePwdChange: loginCountSincePwdChange,
+        loginsRemaining: loginsRemaining,
+        mustChangePassword: user.must_change_password === 1
       }
     });
   } catch (error) {
