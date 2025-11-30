@@ -100,16 +100,16 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
   const networkRef = useRef<Network | null>(null);
   const [isNetworkInitialized, setIsNetworkInitialized] = useState(false);
 
-  // Initialize network data with immutable copies
-  const networkData = useNetworkData(getInitialNodes(), getInitialLinks());
+  // Initialize network data with EMPTY topology - user must import
+  const networkData = useNetworkData([], []);
   const { nodes: NODES, links: LINKS } = networkData;
 
   const nodesDataSet = useRef<DataSet<VisNode>>(new DataSet<VisNode>([]));
   const edgesDataSet = useRef<DataSet<VisEdge>>(new DataSet<VisEdge>([]));
 
   const [playing, setPlaying] = useState(false);
-  const [source, setSource] = useState<string>("zaf-r1");
-  const [destination, setDestination] = useState<string>("lso-r1");
+  const [source, setSource] = useState<string>("");
+  const [destination, setDestination] = useState<string>("");
   const [logs, setLogs] = useState<{ time: string, msg: string }[]>([]);
   const [isDark, setIsDark] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

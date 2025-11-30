@@ -1,0 +1,165 @@
+================================================================================
+COMPREHENSIVE PATH TESTING - 30 UNIQUE ROUTES
+================================================================================
+Topology: netviz-pro-topology-2025-11-30T18_44_02.838Z.json
+Nodes: 10
+Links: 18 (36 directed edges)
+================================================================================
+
+Test 1/30: zwe-bul-pop-p04 → usa-nyc-dc1-rr08
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → usa-nyc-dc1-rr08
+  Hops: 1
+
+Test 2/30: zwe-bul-pop-p04 → zwe-hra-pop-p02
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → zwe-hra-pop-p01 → zwe-hra-pop-p02
+  Hops: 2
+
+Test 3/30: zwe-bul-pop-p04 → usa-nyc-dc1-pe05
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → usa-nyc-dc1-rr08 → usa-nyc-dc1-pe05
+  Hops: 2
+
+Test 4/30: zwe-bul-pop-p04 → deu-ber-bes-p06
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → deu-ber-bes-p06
+  Hops: 1
+
+Test 5/30: zwe-bul-pop-p04 → gbr-ldn-wst-p07
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → zwe-hra-pop-p01 → gbr-ldn-wst-p07
+  Hops: 2
+
+Test 6/30: zwe-bul-pop-p04 → zwe-hra-pop-p01
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → zwe-hra-pop-p01
+  Hops: 1
+
+Test 7/30: zwe-bul-pop-p04 → zwe-bul-pop-p03
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → zwe-bul-pop-p03
+  Hops: 1
+
+Test 8/30: zwe-bul-pop-p04 → gbr-ldn-wst-pe09
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → usa-nyc-dc1-rr08 → gbr-ldn-wst-pe09
+  Hops: 2
+
+Test 9/30: zwe-bul-pop-p04 → deu-ber-bes-pe10
+  Status: ✅ PASS
+  Path: zwe-bul-pop-p04 → deu-ber-bes-p06 → deu-ber-bes-pe10
+  Hops: 2
+
+Test 10/30: usa-nyc-dc1-rr08 → zwe-hra-pop-p02
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → zwe-bul-pop-p04 → zwe-hra-pop-p01 → zwe-hra-pop-p02
+  Hops: 3
+
+Test 11/30: usa-nyc-dc1-rr08 → usa-nyc-dc1-pe05
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → usa-nyc-dc1-pe05
+  Hops: 1
+
+Test 12/30: usa-nyc-dc1-rr08 → deu-ber-bes-p06
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → zwe-bul-pop-p04 → deu-ber-bes-p06
+  Hops: 2
+
+Test 13/30: usa-nyc-dc1-rr08 → gbr-ldn-wst-p07
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → gbr-ldn-wst-pe09 → gbr-ldn-wst-p07
+  Hops: 2
+
+Test 14/30: usa-nyc-dc1-rr08 → zwe-hra-pop-p01
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → zwe-bul-pop-p04 → zwe-hra-pop-p01
+  Hops: 2
+
+Test 15/30: usa-nyc-dc1-rr08 → zwe-bul-pop-p03
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → zwe-bul-pop-p04 → zwe-bul-pop-p03
+  Hops: 2
+
+Test 16/30: usa-nyc-dc1-rr08 → gbr-ldn-wst-pe09
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → gbr-ldn-wst-pe09
+  Hops: 1
+
+Test 17/30: usa-nyc-dc1-rr08 → deu-ber-bes-pe10
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-rr08 → usa-nyc-dc1-pe05 → deu-ber-bes-pe10
+  Hops: 2
+
+Test 18/30: zwe-hra-pop-p02 → usa-nyc-dc1-pe05
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → zwe-bul-pop-p03 → usa-nyc-dc1-pe05
+  Hops: 2
+
+Test 19/30: zwe-hra-pop-p02 → deu-ber-bes-p06
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → deu-ber-bes-pe10 → deu-ber-bes-p06
+  Hops: 2
+
+Test 20/30: zwe-hra-pop-p02 → gbr-ldn-wst-p07
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → zwe-hra-pop-p01 → gbr-ldn-wst-p07
+  Hops: 2
+
+Test 21/30: zwe-hra-pop-p02 → zwe-hra-pop-p01
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → zwe-hra-pop-p01
+  Hops: 1
+
+Test 22/30: zwe-hra-pop-p02 → zwe-bul-pop-p03
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → zwe-bul-pop-p03
+  Hops: 1
+
+Test 23/30: zwe-hra-pop-p02 → gbr-ldn-wst-pe09
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → zwe-hra-pop-p01 → gbr-ldn-wst-p07 → gbr-ldn-wst-pe09
+  Hops: 3
+
+Test 24/30: zwe-hra-pop-p02 → deu-ber-bes-pe10
+  Status: ✅ PASS
+  Path: zwe-hra-pop-p02 → deu-ber-bes-pe10
+  Hops: 1
+
+Test 25/30: usa-nyc-dc1-pe05 → deu-ber-bes-p06
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-pe05 → deu-ber-bes-pe10 → deu-ber-bes-p06
+  Hops: 2
+
+Test 26/30: usa-nyc-dc1-pe05 → gbr-ldn-wst-p07
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-pe05 → usa-nyc-dc1-rr08 → gbr-ldn-wst-pe09 → gbr-ldn-wst-p07
+  Hops: 3
+
+Test 27/30: usa-nyc-dc1-pe05 → zwe-hra-pop-p01
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-pe05 → zwe-bul-pop-p03 → zwe-bul-pop-p04 → zwe-hra-pop-p01
+  Hops: 3
+
+Test 28/30: usa-nyc-dc1-pe05 → zwe-bul-pop-p03
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-pe05 → zwe-bul-pop-p03
+  Hops: 1
+
+Test 29/30: usa-nyc-dc1-pe05 → gbr-ldn-wst-pe09
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-pe05 → usa-nyc-dc1-rr08 → gbr-ldn-wst-pe09
+  Hops: 2
+
+Test 30/30: usa-nyc-dc1-pe05 → deu-ber-bes-pe10
+  Status: ✅ PASS
+  Path: usa-nyc-dc1-pe05 → deu-ber-bes-pe10
+  Hops: 1
+
+================================================================================
+TEST SUMMARY
+================================================================================
+Total Tests: 30
+Passed: 30 (100.0%)
+Failed: 0 (0.0%)
+================================================================================
