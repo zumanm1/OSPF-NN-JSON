@@ -35,7 +35,7 @@ print_info() {
 }
 
 #===============================================================================
-# Check if ports are available
+# Port Management Functions
 #===============================================================================
 
 check_port() {
@@ -45,6 +45,41 @@ check_port() {
     else
         return 0  # Port is available
     fi
+}
+
+kill_port() {
+    local port=$1
+    local pids=$(lsof -ti:$port 2>/dev/null)
+    if [ -n "$pids" ]; then
+        echo "$pids" | xargs kill -9 2>/dev/null
+        print_info "Killed process(es) on port $port"
+        return 0
+    fi
+    return 1
+}
+
+cleanup_ports() {
+    print_info "Cleaning up ports $FRONTEND_PORT and $BACKEND_PORT..."
+    
+    # Kill any processes on frontend port
+    if ! check_port $FRONTEND_PORT; then
+        kill_port $FRONTEND_PORT
+    fi
+    
+    # Kill any processes on backend port
+    if ! check_port $BACKEND_PORT; then
+        kill_port $BACKEND_PORT
+    fi
+    
+    # Also kill any node/vite processes related to this app
+    pkill -f "vite" 2>/dev/null || true
+    pkill -f "node server/index.js" 2>/dev/null || true
+    pkill -f "concurrently" 2>/dev/null || true
+    
+    # Wait for ports to be released
+    sleep 2
+    
+    print_success "Ports cleaned up"
 }
 
 #===============================================================================
@@ -70,16 +105,8 @@ show_menu() {
 start_dev() {
     print_header "Starting Development Mode"
     
-    # Check ports
-    if ! check_port $FRONTEND_PORT; then
-        print_error "Port $FRONTEND_PORT is already in use. Run ./stop.sh first."
-        exit 1
-    fi
-    
-    if ! check_port $BACKEND_PORT; then
-        print_error "Port $BACKEND_PORT is already in use. Run ./stop.sh first."
-        exit 1
-    fi
+    # Clean up ports first
+    cleanup_ports
     
     print_info "Starting frontend (Vite) on port $FRONTEND_PORT..."
     print_info "Starting backend (Express) on port $BACKEND_PORT..."
@@ -97,11 +124,8 @@ start_production() {
         npm run build
     fi
     
-    # Check ports
-    if ! check_port $BACKEND_PORT; then
-        print_error "Port $BACKEND_PORT is already in use. Run ./stop.sh first."
-        exit 1
-    fi
+    # Clean up ports first
+    cleanup_ports
     
     print_info "Starting backend server on port $BACKEND_PORT..."
     print_info "Serving static files from dist/"
@@ -113,9 +137,10 @@ start_production() {
 start_backend_only() {
     print_header "Starting Backend Only"
     
+    # Kill backend port
     if ! check_port $BACKEND_PORT; then
-        print_error "Port $BACKEND_PORT is already in use. Run ./stop.sh first."
-        exit 1
+        kill_port $BACKEND_PORT
+        sleep 1
     fi
     
     print_info "Starting backend server on port $BACKEND_PORT..."
@@ -125,9 +150,10 @@ start_backend_only() {
 start_frontend_only() {
     print_header "Starting Frontend Only (Dev)"
     
+    # Kill frontend port
     if ! check_port $FRONTEND_PORT; then
-        print_error "Port $FRONTEND_PORT is already in use. Run ./stop.sh first."
-        exit 1
+        kill_port $FRONTEND_PORT
+        sleep 1
     fi
     
     print_info "Starting Vite dev server on port $FRONTEND_PORT..."
@@ -147,12 +173,8 @@ quick_start() {
         npm install
     fi
     
-    # Check ports and kill if necessary
-    if ! check_port $FRONTEND_PORT || ! check_port $BACKEND_PORT; then
-        print_info "Ports in use. Stopping existing processes..."
-        ./stop.sh 2>/dev/null || true
-        sleep 2
-    fi
+    # Always clean up ports before starting
+    cleanup_ports
     
     print_info "Starting in development mode..."
     print_info "Frontend: http://localhost:$FRONTEND_PORT"

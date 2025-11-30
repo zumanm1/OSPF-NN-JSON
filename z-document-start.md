@@ -92,14 +92,25 @@ npm install
 Create a `.env` file:
 ```bash
 cat > .env << 'EOF'
-PORT=9080
+# Server ports
+PORT=9081
 API_PORT=9081
 NODE_ENV=development
+
+# JWT Configuration (CHANGE IN PRODUCTION!)
 JWT_SECRET=your-super-secret-jwt-key-change-in-production-min-32-chars
+JWT_EXPIRES_IN=7d
+
+# Admin Credentials (CHANGE IN PRODUCTION!)
 APP_ADMIN_USERNAME=netviz_admin
 APP_ADMIN_PASSWORD=V3ry$trongAdm1n!2025
+
+# Database
 DB_PATH=./data/ospf-visualizer.db
+
+# CORS Configuration (add your server IP)
 CORS_ORIGINS=http://localhost:9080,http://127.0.0.1:9080
+ALLOWED_ORIGINS=http://localhost:9080,http://127.0.0.1:9080
 EOF
 ```
 
