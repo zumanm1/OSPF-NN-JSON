@@ -1,43 +1,52 @@
-# Dependencies
-node_modules/
-package-lock.json
-
-# Build outputs
-dist/
-build/
-.vite/
-
-# Environment files
-.env
-.env.local
-.env.*.local
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
-*~
-
-# OS
-.DS_Store
-Thumbs.db
-
 # Logs
+logs
 *.log
 npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Environment variables
+.env
+.env.local
+.env.production
+
+# Database
+data/
+*.db
+*.sqlite
+*.sqlite3
 
 # Testing
 coverage/
 .nyc_output/
 
-# Screenshots from validation
-validation-screenshots/
-screenshots/
+# Build
+build/
 
-# Temporary files
-temp-*.json
-*.tmp
+# Deployment artifacts
+deploy_package/
+*.tar.gz
+ospf-visualizer-*.tar.gz
+.backend.pid
+.frontend.pid
 
-# Brain/artifacts (internal tool files)
-.gemini/
+# Production environment files
+.env.production.generated

@@ -1,5 +1,9 @@
 /* OSPF Visualizer Pro - Global Styles */
-/* Main styling is handled by Tailwind CSS via CDN */
+
+/* Tailwind CSS directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Animation keyframes for modals */
 @keyframes fade-in {

@@ -18,3 +18,6 @@ View your app in AI Studio: https://ai.studio/apps/drive/10ZGK_3zFy5dU8vuerkEjI0
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
+4. Open browser at: `http://localhost:9080`
+
+**Note**: Application runs on port **9080** (configured in `vite.config.ts`)

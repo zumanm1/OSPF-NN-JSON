@@ -1,0 +1,46 @@
+{
+  "passed": 8,
+  "failed": 0,
+  "tests": [
+    {
+      "name": "App Load",
+      "status": "PASS"
+    },
+    {
+      "name": "CSS Loading",
+      "status": "PASS"
+    },
+    {
+      "name": "Impact Modal Fix",
+      "status": "PASS"
+    },
+    {
+      "name": "Ripple Modal",
+      "status": "PASS"
+    },
+    {
+      "name": "View Modes",
+      "status": "PASS"
+    },
+    {
+      "name": "Path Animation",
+      "status": "WARN"
+    },
+    {
+      "name": "Dark Mode",
+      "status": "PASS"
+    },
+    {
+      "name": "Export/Import",
+      "status": "PASS"
+    },
+    {
+      "name": "Node Selection",
+      "status": "PASS"
+    }
+  ],
+  "errors": [
+    "Failed to load resource: the server responded with a status of 404 (Not Found)"
+  ],
+  "timestamp": "2025-11-29T18:28:31.549Z"
+}

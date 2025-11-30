@@ -7,6 +7,23 @@ export function dijkstraDirected(
   nodes: VisNode[],
   edges: VisEdge[]
 ): PathResult | null {
+  // Validate that start and goal nodes exist
+  const nodeIds = new Set(nodes.map(n => n.id));
+  if (!nodeIds.has(start) || !nodeIds.has(goal)) {
+    return null;
+  }
+  
+  // Handle same source and destination
+  if (start === goal) {
+    return {
+      cost: 0,
+      canonicalPath: [start],
+      steps: [[start]],
+      edges: [],
+      isECMP: false
+    };
+  }
+  
   // Adjacency List: Map<NodeID, Array<{to, cost, id}>>
   const adj = new Map<string, { to: string; cost: number; id: string }[]>();
   

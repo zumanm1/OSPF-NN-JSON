@@ -9,7 +9,7 @@ import {
   Layers, Globe, Sliders, TrendingUp, TrendingDown, Route,
   MapPin, Eye
 } from 'lucide-react';
-import { DijkstraVisualizerModal } from './components/DijkstraVisualizerModal';
+import { PathComparisonModal } from './components/PathComparisonModal';
 import { NetworkHealthModal } from './components/NetworkHealthModal';
 import { RippleEffectModal } from './components/RippleEffectModal';
 // ImpactAnalysisModal component removed - real modal is implemented inline in App.tsx
@@ -2620,7 +2620,7 @@ export default function App() {
       )}
 
       {/* Modals */}
-      <DijkstraVisualizerModal
+      <PathComparisonModal
         isOpen={isDijkstraModalOpen}
         onClose={() => setIsDijkstraModalOpen(false)}
         nodes={Array.from(nodesDataSet.current.get())}
