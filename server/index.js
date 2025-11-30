@@ -4,6 +4,9 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
+import settingsRoutes from './routes/settings.js';
+import customLinksRoutes from './routes/customLinks.js';
+import scenariosRoutes from './routes/scenarios.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { initDatabase } from './database/db.js';
 
@@ -55,9 +58,46 @@ app.use(helmet({
 }));
 
 // CORS configuration
-const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:5173'];
+// Default frontend origin is localhost:9080 to match Vite dev server
+const allowedOrigins = process.env.ALLOWED_ORIGINS?.split(',').map(o => o.trim()) || ['http://localhost:9080'];
+
+// Allowed IPs for additional access control
+const allowedIPs = process.env.ALLOWED_IPS?.split(',').map(ip => ip.trim()) || ['127.0.0.1'];
+
+// Helper to check if IP matches (supports simple CIDR notation like 192.168.1.0/24)
+function isIPAllowed(clientIP) {
+  if (!clientIP) return false;
+
+  // Normalize IPv6 localhost to IPv4
+  const normalizedIP = clientIP === '::1' ? '127.0.0.1' : clientIP.replace(/^::ffff:/, '');
+
+  // Allow all if 0.0.0.0 is in the list
+  if (allowedIPs.includes('0.0.0.0')) return true;
+
+  for (const allowed of allowedIPs) {
+    if (allowed.includes('/')) {
+      // CIDR notation
+      const [subnet, bits] = allowed.split('/');
+      const mask = ~(Math.pow(2, 32 - parseInt(bits)) - 1);
+      const subnetNum = ipToNum(subnet);
+      const clientNum = ipToNum(normalizedIP);
+      if ((subnetNum & mask) === (clientNum & mask)) return true;
+    } else if (allowed === normalizedIP) {
+      return true;
+    }
+  }
+  return false;
+}
+
+// Convert IP to number for CIDR comparison
+function ipToNum(ip) {
+  const parts = ip.split('.').map(Number);
+  return (parts[0] << 24) + (parts[1] << 16) + (parts[2] << 8) + parts[3];
+}
+
 app.use(cors({
   origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
@@ -68,6 +108,26 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+
+// IP-based access control middleware (optional - only if ALLOWED_IPS is restrictive)
+app.use((req, res, next) => {
+  const clientIP = req.ip || req.connection.remoteAddress;
+
+  // Skip IP check if allowing all (0.0.0.0)
+  if (allowedIPs.includes('0.0.0.0')) {
+    return next();
+  }
+
+  if (isIPAllowed(clientIP)) {
+    next();
+  } else {
+    console.warn(`⚠️ Blocked request from IP: ${clientIP}`);
+    res.status(403).json({
+      error: 'Access denied',
+      message: 'Your IP address is not allowed to access this API'
+    });
+  }
+});
 
 // Rate limiting
 const limiter = rateLimit({
@@ -91,6 +151,9 @@ app.get('/api/health', (req, res) => {
 
 // Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/custom-links', customLinksRoutes);
+app.use('/api/scenarios', scenariosRoutes);
 
 // Error handling middleware (must be last)
 app.use(errorHandler);

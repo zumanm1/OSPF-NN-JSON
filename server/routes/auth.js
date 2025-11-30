@@ -108,25 +108,27 @@ router.post('/register', async (req, res) => {
 /**
  * Login user
  * POST /api/auth/login
+ * Supports login with either email or username
  */
 router.post('/login', async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
+    const identifier = email || username;
 
     // Validation
-    if (!email || !password) {
+    if (!identifier || !password) {
       return res.status(400).json({
         error: 'Validation error',
-        message: 'Email and password are required'
+        message: 'Email/username and password are required'
       });
     }
 
     const db = getDatabase();
 
-    // Find user
+    // Find user by email or username
     const user = await db.get(
-      'SELECT id, username, email, password_hash, full_name, role, is_active FROM users WHERE email = ?',
-      [email]
+      'SELECT id, username, email, password_hash, full_name, role, is_active FROM users WHERE email = ? OR username = ?',
+      [identifier, identifier]
     );
 
     if (!user) {
