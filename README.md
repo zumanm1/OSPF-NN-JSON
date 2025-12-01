@@ -1,46 +1,222 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
-</div>
+# OSPF Visualizer Pro
 
-# Run and deploy your AI Studio app
+A powerful network topology visualization and analysis platform for OSPF networks.
 
-This contains everything you need to run your app locally.
+![OSPF Visualizer Pro](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-View your app in AI Studio: https://ai.studio/apps/drive/10ZGK_3zFy5dU8vuerkEjI0LjgAqnTLoI
+## 🚀 Quick Start (3 Commands)
 
-## Run Locally
+```bash
+# 1. Clone the repository
+git clone https://github.com/zumanm1/OSPF-NN-JSON.git && cd OSPF-NN-JSON
 
-**Prerequisites:**  Node.js
+# 2. Install dependencies (auto-installs Node.js if missing)
+./install.sh
 
-
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Start frontend (Vite dev server): `npm run dev`
-4. Start backend API (Express): `npm run server:dev`
-   - Or run both together: `npm run start:all`
-5. Open the app at: `http://localhost:9080`
-
-### Ports
-- Frontend (Vite): http://localhost:9080
-- Backend API (Express): http://localhost:9081
-
-These are the defaults. Frontend port is set in `vite.config.ts`. Backend port is controlled by `PORT` in `server/.env` (defaults to 9081 if unset).
-
-### Backend configuration
-Create a `server/.env` (or copy `server/.env.example`) and set at minimum:
-
-```
-PORT=9081
-ALLOWED_ORIGINS=http://localhost:9080
-JWT_SECRET=change-me-to-a-long-random-string
-JWT_EXPIRES_IN=1d
-DB_PATH=./server/data/app.db
-RATE_LIMIT_WINDOW_MS=900000
-RATE_LIMIT_MAX_REQUESTS=100
-NODE_ENV=development
+# 3. Start the application
+./start.sh
 ```
 
-Notes:
-- CORS is restricted to `ALLOWED_ORIGINS` and defaults to `http://localhost:9080` for local dev.
-- Health check: `GET http://localhost:9081/api/health`
+**Access:** http://localhost:9080
+
+**Login:** `netviz_admin` / `V3ry$trongAdm1n!2025`
+
+---
+
+## 📋 Available Scripts
+
+| Script | Description |
+|--------|-------------|
+| `./install.sh` | Install Node.js, npm, and all dependencies |
+| `./start.sh` | Start the application (interactive mode) |
+| `./start.sh --background` | Start in background (for servers) |
+| `./stop.sh` | Stop all running processes |
+| `./stop.sh --status` | Check if app is running |
+
+---
+
+## 🖥️ System Requirements
+
+- **Node.js:** v18+ (auto-installed by `install.sh`)
+- **npm:** v9+ (auto-installed by `install.sh`)
+- **OS:** Linux (Ubuntu 20.04+) or macOS
+- **Ports:** 9080 (frontend), 9081 (backend)
+
+---
+
+## 📦 Installation Details
+
+### What `install.sh` Does:
+
+1. ✅ Checks if Node.js v18+ is installed
+2. ✅ Installs Node.js if missing (via NodeSource on Linux, Homebrew on macOS)
+3. ✅ Checks if npm v9+ is installed
+4. ✅ Upgrades npm if outdated
+5. ✅ Runs `npm install` to install all dependencies
+6. ✅ Creates `.env` configuration file with all detected network IPs
+7. ✅ Creates `.env.local` for frontend API configuration
+8. ✅ Creates `data/` directory for the database
+
+---
+
+## 🚀 Starting the Application
+
+### Interactive Mode (Local Development)
+```bash
+./start.sh
+```
+This starts both frontend and backend with live output in the terminal.
+
+### Background Mode (Remote Servers)
+```bash
+./start.sh --background
+```
+This starts the app in the background and shows all available URLs.
+
+### Other Start Options
+```bash
+./start.sh --dev        # Development mode with hot reload
+./start.sh --prod       # Production mode (requires build)
+./start.sh --backend    # Backend only
+./start.sh --frontend   # Frontend only
+./start.sh --menu       # Interactive menu
+./start.sh --help       # Show all options
+```
+
+---
+
+## 🛑 Stopping the Application
+
+```bash
+./stop.sh              # Stop all app processes
+./stop.sh --status     # Check running status
+./stop.sh --force      # Force kill all Node processes
+```
+
+---
+
+## 🌐 Remote Server Deployment
+
+### Step-by-Step:
+
+```bash
+# 1. SSH into your server
+ssh user@your-server-ip
+
+# 2. Clone the repository
+git clone https://github.com/zumanm1/OSPF-NN-JSON.git
+cd OSPF-NN-JSON
+
+# 3. Make scripts executable (if needed)
+chmod +x install.sh start.sh stop.sh
+
+# 4. Install dependencies
+./install.sh
+
+# 5. Start in background mode
+./start.sh --background
+```
+
+### Access from Browser:
+```
+http://your-server-ip:9080
+```
+
+### Notes:
+- The `install.sh` script automatically detects ALL network interfaces
+- CORS is configured for all detected IPs
+- Use `./stop.sh --status` to verify the app is running
+
+---
+
+## 🔐 Default Credentials
+
+| Field | Value |
+|-------|-------|
+| **Username** | `netviz_admin` |
+| **Password** | `V3ry$trongAdm1n!2025` |
+
+⚠️ **Change these in production** by editing the `.env` file.
+
+---
+
+## 📁 Project Structure
+
+```
+OSPF-NN-JSON/
+├── install.sh          # Installation script
+├── start.sh            # Start script
+├── stop.sh             # Stop script
+├── package.json        # npm dependencies
+├── .env                # Environment config (generated)
+├── .env.local          # Frontend config (generated)
+├── App.tsx             # Main React component
+├── server/             # Backend Express server
+│   └── index.js        # Server entry point
+├── components/         # React components
+├── services/           # Business logic (Dijkstra, etc.)
+├── contexts/           # React contexts (Auth)
+├── data/               # SQLite database
+└── dist/               # Production build
+```
+
+---
+
+## 🔧 Troubleshooting
+
+### Port Already in Use
+```bash
+./stop.sh              # Stop the app
+./stop.sh --force      # Or force kill
+```
+
+### Permission Denied
+```bash
+chmod +x install.sh start.sh stop.sh
+```
+
+### Node.js Not Found After Install
+```bash
+# Reload shell
+source ~/.bashrc
+# Or restart terminal
+```
+
+### Database Issues
+```bash
+rm -rf data/ospf-visualizer.db
+./start.sh  # Recreates database
+```
+
+### CORS Issues on Remote Server
+Edit `.env` and add your IP:
+```bash
+CORS_ORIGINS=http://localhost:9080,http://YOUR_IP:9080
+ALLOWED_ORIGINS=http://localhost:9080,http://YOUR_IP:9080
+```
+
+---
+
+## 📖 Full Documentation
+
+See [z-document-start.md](z-document-start.md) for detailed documentation.
+
+---
+
+## 📞 Support
+
+1. Check the [Troubleshooting](#troubleshooting) section
+2. Review terminal logs
+3. Open an issue on GitHub
+
+---
+
+## 📄 License
+
+MIT License - see LICENSE file for details.
+
+---
+
+**Last Updated:** December 1, 2025
