@@ -176,8 +176,18 @@ setup_environment() {
     if [ ! -f ".env" ]; then
         print_info "Creating .env file..."
         
-        # Get the server IP for CORS configuration
-        SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "localhost")
+        # Get ALL server IPs for CORS configuration (handles multiple network interfaces)
+        ALL_IPS=$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -v '^$' || echo "localhost")
+        PRIMARY_IP=$(echo "$ALL_IPS" | head -1)
+        
+        # Build CORS origins list with all IPs
+        CORS_LIST="http://localhost:9080,http://127.0.0.1:9080"
+        for ip in $ALL_IPS; do
+            CORS_LIST="${CORS_LIST},http://${ip}:9080"
+        done
+        
+        print_info "Detected IPs: $(echo $ALL_IPS | tr '\n' ' ')"
+        print_info "Primary IP: $PRIMARY_IP"
         
         cat > .env << EOF
 # OSPF Visualizer Pro Environment Configuration
@@ -199,17 +209,18 @@ APP_ADMIN_PASSWORD=V3ry\$trongAdm1n!2025
 # Database
 DB_PATH=./data/ospf-visualizer.db
 
-# CORS (comma-separated origins)
-CORS_ORIGINS=http://localhost:9080,http://127.0.0.1:9080,http://${SERVER_IP}:9080
-ALLOWED_ORIGINS=http://localhost:9080,http://127.0.0.1:9080,http://${SERVER_IP}:9080
+# CORS (comma-separated origins) - includes all detected network interfaces
+CORS_ORIGINS=${CORS_LIST}
+ALLOWED_ORIGINS=${CORS_LIST}
 
 # IP Access Control (0.0.0.0 allows all IPs, or specify comma-separated IPs/CIDRs)
 ALLOWED_IPS=0.0.0.0
 
-# Frontend API URL (for remote access)
-VITE_API_URL=http://${SERVER_IP}:9081/api
+# Frontend API URL (for remote access) - uses primary IP
+# Change this if accessing from a different network interface
+VITE_API_URL=http://${PRIMARY_IP}:9081/api
 EOF
-        print_success ".env file created"
+        print_success ".env file created with CORS for all detected IPs"
     else
         print_info ".env file already exists"
     fi
@@ -223,7 +234,11 @@ EOF
     # Create .env.local for Vite (frontend) with correct API URL
     if [ ! -f ".env.local" ]; then
         print_info "Creating .env.local for frontend..."
-        echo "VITE_API_URL=http://${SERVER_IP}:9081/api" > .env.local
+        # Use PRIMARY_IP if set, otherwise detect it again
+        if [ -z "$PRIMARY_IP" ]; then
+            PRIMARY_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "localhost")
+        fi
+        echo "VITE_API_URL=http://${PRIMARY_IP}:9081/api" > .env.local
         print_success ".env.local created"
     else
         print_info ".env.local already exists"

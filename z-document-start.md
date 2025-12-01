@@ -207,20 +207,20 @@ chmod +x install.sh start.sh stop.sh
 
 ### Important Configuration for Remote Access
 
-After running `./install.sh`, edit the `.env` file to ensure:
+The `install.sh` script **automatically detects all network interfaces** and configures CORS for all of them. However, if you need to access from a specific IP that wasn't detected, edit the `.env` file:
 
 ```bash
-# CORS origins must include your server IP
+# CORS origins - add any additional IPs needed
 CORS_ORIGINS=http://localhost:9080,http://YOUR_SERVER_IP:9080
 ALLOWED_ORIGINS=http://localhost:9080,http://YOUR_SERVER_IP:9080
 
-# Allow all IPs to access the API (or specify specific IPs)
+# Allow all IPs to access the API (default)
 ALLOWED_IPS=0.0.0.0
 ```
 
-Also create `.env.local` for the frontend:
+If accessing from a different network interface than the primary one, update `.env.local`:
 ```bash
-echo "VITE_API_URL=http://YOUR_SERVER_IP:9081/api" > .env.local
+echo "VITE_API_URL=http://YOUR_SPECIFIC_IP:9081/api" > .env.local
 ```
 
 Then restart the application:
@@ -228,6 +228,8 @@ Then restart the application:
 ./stop.sh
 ./start.sh --background
 ```
+
+**Note:** The `start.sh --background` command will display all available network URLs after starting.
 
 ### Accessing Remote Server
 
@@ -327,5 +329,5 @@ For issues or questions:
 
 ---
 
-**Last Updated:** November 30, 2025
+**Last Updated:** December 1, 2025
 

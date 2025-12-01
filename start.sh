@@ -272,11 +272,25 @@ start_background() {
     echo ""
     echo "Access URLs:"
     echo "  Local:   http://localhost:$FRONTEND_PORT"
-    echo "  Network: http://$SERVER_IP:$FRONTEND_PORT"
+    
+    # Show all available network IPs
+    ALL_IPS=$(hostname -I 2>/dev/null | tr ' ' '\n' | grep -v '^$')
+    if [ -n "$ALL_IPS" ]; then
+        for ip in $ALL_IPS; do
+            echo "  Network: http://${ip}:$FRONTEND_PORT"
+        done
+    else
+        echo "  Network: http://$SERVER_IP:$FRONTEND_PORT"
+    fi
+    
     echo ""
     echo "Logs:"
     echo "  Backend:  /tmp/ospf-backend.log"
     echo "  Frontend: /tmp/ospf-frontend.log"
+    echo ""
+    echo "Default credentials:"
+    echo "  Username: netviz_admin"
+    echo "  Password: V3ry\$trongAdm1n!2025"
     echo ""
     echo "To stop: ./stop.sh"
 }
