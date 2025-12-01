@@ -35,12 +35,27 @@ print_info() {
 }
 
 #===============================================================================
-# Kill processes by port
+# Kill processes by port (works on both macOS and Linux)
 #===============================================================================
 
 kill_port() {
     local port=$1
-    local pids=$(lsof -ti:$port 2>/dev/null)
+    local pids=""
+    
+    # Try lsof first (macOS and some Linux)
+    if command -v lsof &> /dev/null; then
+        pids=$(lsof -ti:$port 2>/dev/null)
+    fi
+    
+    # If lsof didn't work, try fuser (Linux)
+    if [ -z "$pids" ] && command -v fuser &> /dev/null; then
+        pids=$(fuser $port/tcp 2>/dev/null | tr -s ' ')
+    fi
+    
+    # If still no pids, try ss + awk (Linux)
+    if [ -z "$pids" ]; then
+        pids=$(ss -tlnp 2>/dev/null | grep ":$port " | grep -oP 'pid=\K[0-9]+' | sort -u)
+    fi
     
     if [ -n "$pids" ]; then
         echo "$pids" | xargs kill -9 2>/dev/null
@@ -131,21 +146,33 @@ check_status() {
     echo "Port Status:"
     echo "─────────────────────────────────────"
     
-    # Check frontend port
-    if lsof -Pi :$FRONTEND_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
-        local frontend_pid=$(lsof -ti:$FRONTEND_PORT)
-        echo -e "  Frontend ($FRONTEND_PORT): ${GREEN}RUNNING${NC} (PID: $frontend_pid)"
-    else
-        echo -e "  Frontend ($FRONTEND_PORT): ${RED}STOPPED${NC}"
-    fi
+    # Function to check if port is in use (works on both macOS and Linux)
+    check_port_status() {
+        local port=$1
+        local name=$2
+        local pid=""
+        
+        # Try lsof first
+        if command -v lsof &> /dev/null; then
+            if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+                pid=$(lsof -ti:$port 2>/dev/null | head -1)
+            fi
+        fi
+        
+        # Try ss if lsof didn't work
+        if [ -z "$pid" ]; then
+            pid=$(ss -tlnp 2>/dev/null | grep ":$port " | grep -oP 'pid=\K[0-9]+' | head -1)
+        fi
+        
+        if [ -n "$pid" ]; then
+            echo -e "  $name ($port): ${GREEN}RUNNING${NC} (PID: $pid)"
+        else
+            echo -e "  $name ($port): ${RED}STOPPED${NC}"
+        fi
+    }
     
-    # Check backend port
-    if lsof -Pi :$BACKEND_PORT -sTCP:LISTEN -t >/dev/null 2>&1; then
-        local backend_pid=$(lsof -ti:$BACKEND_PORT)
-        echo -e "  Backend  ($BACKEND_PORT): ${GREEN}RUNNING${NC} (PID: $backend_pid)"
-    else
-        echo -e "  Backend  ($BACKEND_PORT): ${RED}STOPPED${NC}"
-    fi
+    check_port_status $FRONTEND_PORT "Frontend"
+    check_port_status $BACKEND_PORT "Backend "
     
     echo ""
 }

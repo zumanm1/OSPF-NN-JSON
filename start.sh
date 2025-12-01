@@ -35,21 +35,48 @@ print_info() {
 }
 
 #===============================================================================
-# Port Management Functions
+# Port Management Functions (works on both macOS and Linux)
 #===============================================================================
 
 check_port() {
     local port=$1
-    if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
-        return 1  # Port is in use
-    else
-        return 0  # Port is available
+    
+    # Try lsof first (macOS and some Linux)
+    if command -v lsof &> /dev/null; then
+        if lsof -Pi :$port -sTCP:LISTEN -t >/dev/null 2>&1; then
+            return 1  # Port is in use
+        fi
     fi
+    
+    # Try ss (Linux)
+    if command -v ss &> /dev/null; then
+        if ss -tlnp 2>/dev/null | grep -q ":$port "; then
+            return 1  # Port is in use
+        fi
+    fi
+    
+    return 0  # Port is available
 }
 
 kill_port() {
     local port=$1
-    local pids=$(lsof -ti:$port 2>/dev/null)
+    local pids=""
+    
+    # Try lsof first (macOS and some Linux)
+    if command -v lsof &> /dev/null; then
+        pids=$(lsof -ti:$port 2>/dev/null)
+    fi
+    
+    # If lsof didn't work, try fuser (Linux)
+    if [ -z "$pids" ] && command -v fuser &> /dev/null; then
+        pids=$(fuser $port/tcp 2>/dev/null | tr -s ' ')
+    fi
+    
+    # If still no pids, try ss + awk (Linux)
+    if [ -z "$pids" ]; then
+        pids=$(ss -tlnp 2>/dev/null | grep ":$port " | grep -oP 'pid=\K[0-9]+' | sort -u)
+    fi
+    
     if [ -n "$pids" ]; then
         echo "$pids" | xargs kill -9 2>/dev/null
         print_info "Killed process(es) on port $port"
@@ -176,12 +203,82 @@ quick_start() {
     # Always clean up ports before starting
     cleanup_ports
     
+    # Get server IP for display
+    SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "localhost")
+    
     print_info "Starting in development mode..."
     print_info "Frontend: http://localhost:$FRONTEND_PORT"
+    print_info "Frontend: http://$SERVER_IP:$FRONTEND_PORT (network)"
     print_info "Backend:  http://localhost:$BACKEND_PORT"
     echo ""
     
     npm run start:all
+}
+
+#===============================================================================
+# Background/Headless Start (for remote servers)
+#===============================================================================
+
+start_background() {
+    print_header "OSPF Visualizer Pro - Background Start"
+    
+    # Check if node_modules exists
+    if [ ! -d "node_modules" ]; then
+        print_info "Dependencies not installed. Running npm install..."
+        npm install
+    fi
+    
+    # Always clean up ports before starting
+    cleanup_ports
+    
+    # Get server IP for display
+    SERVER_IP=$(hostname -I 2>/dev/null | awk '{print $1}' || echo "localhost")
+    
+    # Create log directory
+    mkdir -p /tmp
+    
+    # Start backend in background
+    print_info "Starting backend server on port $BACKEND_PORT..."
+    nohup node server/index.js > /tmp/ospf-backend.log 2>&1 &
+    BACKEND_PID=$!
+    sleep 3
+    
+    # Check if backend started
+    if kill -0 $BACKEND_PID 2>/dev/null; then
+        print_success "Backend started (PID: $BACKEND_PID)"
+    else
+        print_error "Backend failed to start. Check /tmp/ospf-backend.log"
+        cat /tmp/ospf-backend.log
+        exit 1
+    fi
+    
+    # Start frontend in background
+    print_info "Starting frontend server on port $FRONTEND_PORT..."
+    nohup npm run dev -- --host 0.0.0.0 --port $FRONTEND_PORT > /tmp/ospf-frontend.log 2>&1 &
+    FRONTEND_PID=$!
+    sleep 5
+    
+    # Check if frontend started
+    if kill -0 $FRONTEND_PID 2>/dev/null; then
+        print_success "Frontend started (PID: $FRONTEND_PID)"
+    else
+        print_error "Frontend failed to start. Check /tmp/ospf-frontend.log"
+        cat /tmp/ospf-frontend.log
+        exit 1
+    fi
+    
+    echo ""
+    print_success "Application started in background!"
+    echo ""
+    echo "Access URLs:"
+    echo "  Local:   http://localhost:$FRONTEND_PORT"
+    echo "  Network: http://$SERVER_IP:$FRONTEND_PORT"
+    echo ""
+    echo "Logs:"
+    echo "  Backend:  /tmp/ospf-backend.log"
+    echo "  Frontend: /tmp/ospf-frontend.log"
+    echo ""
+    echo "To stop: ./stop.sh"
 }
 
 #===============================================================================
@@ -212,18 +309,23 @@ case "${1:-}" in
             *) print_error "Invalid choice"; exit 1 ;;
         esac
         ;;
+    --background|--bg)
+        start_background
+        ;;
     --help|-h)
         echo "OSPF Visualizer Pro - Start Script"
         echo ""
         echo "Usage: ./start.sh [option]"
         echo ""
         echo "Options:"
-        echo "  --dev, -d       Start in development mode (default)"
-        echo "  --prod, -p      Start in production mode"
-        echo "  --backend, -b   Start backend only"
-        echo "  --frontend, -f  Start frontend only"
-        echo "  --menu, -m      Show interactive menu"
-        echo "  --help, -h      Show this help message"
+        echo "  (no option)       Quick start in development mode (default)"
+        echo "  --dev, -d         Start in development mode"
+        echo "  --prod, -p        Start in production mode"
+        echo "  --backend, -b     Start backend only"
+        echo "  --frontend, -f    Start frontend only"
+        echo "  --background, --bg  Start in background (for remote servers)"
+        echo "  --menu, -m        Show interactive menu"
+        echo "  --help, -h        Show this help message"
         echo ""
         ;;
     *)

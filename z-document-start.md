@@ -111,6 +111,9 @@ DB_PATH=./data/ospf-visualizer.db
 # CORS Configuration (add your server IP)
 CORS_ORIGINS=http://localhost:9080,http://127.0.0.1:9080
 ALLOWED_ORIGINS=http://localhost:9080,http://127.0.0.1:9080
+
+# IP Access Control (0.0.0.0 allows all IPs)
+ALLOWED_IPS=0.0.0.0
 EOF
 ```
 
@@ -132,6 +135,7 @@ EOF
 | `./start.sh --prod` | Production mode (from build) |
 | `./start.sh --backend` | Backend server only |
 | `./start.sh --frontend` | Frontend dev server only |
+| `./start.sh --background` | Background mode (for remote servers) |
 | `./start.sh --menu` | Interactive menu |
 
 ### Using npm directly
@@ -180,31 +184,54 @@ killall node
 
 ## 🌐 Remote Server Deployment
 
-### Deploy to Remote Server (172.16.39.172)
-
-```bash
-# Run the remote deployment script
-./deploy-remote.sh
-```
-
-Or manually:
+### Deploy to Remote Server
 
 ```bash
 # SSH into the server
-ssh cisco@172.16.39.172
+ssh user@your-server-ip
 
 # Clone and install
 git clone https://github.com/zumanm1/OSPF-NN-JSON.git
 cd OSPF-NN-JSON
 chmod +x install.sh start.sh stop.sh
 ./install.sh
-./start.sh
+
+# Start in background mode (recommended for remote servers)
+./start.sh --background
 ```
 
 ### Remote Server Requirements
 - SSH access enabled
 - sudo privileges for installing Node.js
 - Ports 9080 and 9081 open in firewall
+
+### Important Configuration for Remote Access
+
+After running `./install.sh`, edit the `.env` file to ensure:
+
+```bash
+# CORS origins must include your server IP
+CORS_ORIGINS=http://localhost:9080,http://YOUR_SERVER_IP:9080
+ALLOWED_ORIGINS=http://localhost:9080,http://YOUR_SERVER_IP:9080
+
+# Allow all IPs to access the API (or specify specific IPs)
+ALLOWED_IPS=0.0.0.0
+```
+
+Also create `.env.local` for the frontend:
+```bash
+echo "VITE_API_URL=http://YOUR_SERVER_IP:9081/api" > .env.local
+```
+
+Then restart the application:
+```bash
+./stop.sh
+./start.sh --background
+```
+
+### Accessing Remote Server
+
+Open in browser: `http://YOUR_SERVER_IP:9080`
 
 ---
 

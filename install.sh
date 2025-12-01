@@ -202,6 +202,12 @@ DB_PATH=./data/ospf-visualizer.db
 # CORS (comma-separated origins)
 CORS_ORIGINS=http://localhost:9080,http://127.0.0.1:9080,http://${SERVER_IP}:9080
 ALLOWED_ORIGINS=http://localhost:9080,http://127.0.0.1:9080,http://${SERVER_IP}:9080
+
+# IP Access Control (0.0.0.0 allows all IPs, or specify comma-separated IPs/CIDRs)
+ALLOWED_IPS=0.0.0.0
+
+# Frontend API URL (for remote access)
+VITE_API_URL=http://${SERVER_IP}:9081/api
 EOF
         print_success ".env file created"
     else
@@ -212,6 +218,15 @@ EOF
     if [ ! -d "data" ]; then
         mkdir -p data
         print_success "Created data directory"
+    fi
+    
+    # Create .env.local for Vite (frontend) with correct API URL
+    if [ ! -f ".env.local" ]; then
+        print_info "Creating .env.local for frontend..."
+        echo "VITE_API_URL=http://${SERVER_IP}:9081/api" > .env.local
+        print_success ".env.local created"
+    else
+        print_info ".env.local already exists"
     fi
 }
 
