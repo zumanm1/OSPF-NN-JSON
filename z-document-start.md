@@ -237,6 +237,68 @@ Open in browser: `http://YOUR_SERVER_IP:9080`
 
 ---
 
+## 🔒 IP Access Control (Whitelist)
+
+The application includes IP-based access control to restrict which IP addresses can access the backend API.
+
+### Configuration Options
+
+Edit the `ALLOWED_IPS` variable in your `.env` file:
+
+| Setting | Description | Use Case |
+|---------|-------------|----------|
+| `0.0.0.0` | Allow ALL IPs | Development, testing |
+| `127.0.0.1` | Localhost only | Single machine access |
+| `192.168.1.100` | Specific IP | Single client access |
+| `192.168.1.0/24` | Entire subnet (CIDR) | LAN access only |
+| `10.0.0.0/8,172.16.0.0/12` | Multiple subnets | Private networks |
+
+### Examples
+
+**Allow all IPs (default - for development):**
+```bash
+ALLOWED_IPS=0.0.0.0
+```
+
+**Localhost only (most secure):**
+```bash
+ALLOWED_IPS=127.0.0.1
+```
+
+**Allow localhost + specific remote IP:**
+```bash
+ALLOWED_IPS=127.0.0.1,192.168.1.100
+```
+
+**Allow localhost + entire subnet:**
+```bash
+ALLOWED_IPS=127.0.0.1,192.168.1.0/24
+```
+
+**Allow multiple private network ranges:**
+```bash
+ALLOWED_IPS=127.0.0.1,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16
+```
+
+### Applying Changes
+
+After editing `.env`, restart the application:
+```bash
+./stop.sh
+./start.sh
+```
+
+### Security Recommendations
+
+| Environment | Recommended Setting |
+|-------------|---------------------|
+| **Development** | `ALLOWED_IPS=0.0.0.0` |
+| **Production (single server)** | `ALLOWED_IPS=127.0.0.1` |
+| **Production (LAN)** | `ALLOWED_IPS=127.0.0.1,YOUR_LAN_SUBNET/24` |
+| **Production (specific clients)** | `ALLOWED_IPS=127.0.0.1,CLIENT_IP1,CLIENT_IP2` |
+
+---
+
 ## 🔧 Troubleshooting
 
 ### Port Already in Use

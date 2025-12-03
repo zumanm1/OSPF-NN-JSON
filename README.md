@@ -131,6 +131,26 @@ http://your-server-ip:9080
 
 ---
 
+## 🔒 IP Access Control (Whitelist)
+
+Control which IPs can access the backend API via the `ALLOWED_IPS` setting in `.env`:
+
+| Setting | Description |
+|---------|-------------|
+| `ALLOWED_IPS=0.0.0.0` | Allow ALL IPs (default) |
+| `ALLOWED_IPS=127.0.0.1` | Localhost only |
+| `ALLOWED_IPS=127.0.0.1,192.168.1.100` | Localhost + specific IP |
+| `ALLOWED_IPS=127.0.0.1,192.168.1.0/24` | Localhost + subnet (CIDR) |
+
+**After editing `.env`, restart the app:**
+```bash
+./stop.sh && ./start.sh
+```
+
+See [z-document-start.md](z-document-start.md#-ip-access-control-whitelist) for detailed examples.
+
+---
+
 ## 🔐 Default Credentials
 
 | Field | Value |
