@@ -243,7 +243,12 @@ The application includes IP-based access control to restrict which IP addresses 
 
 ### Configuration Options
 
-Edit the `ALLOWED_IPS` variable in your `.env` file:
+Edit the `ALLOWED_IPS` variable in your `.env` file (located in the **ROOT directory**, NOT `server/.env`):
+
+```bash
+# File location: /path/to/OSPF-NN-JSON/.env  (ROOT directory)
+nano .env
+```
 
 | Setting | Description | Use Case |
 |---------|-------------|----------|

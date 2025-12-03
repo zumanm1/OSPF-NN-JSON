@@ -133,7 +133,13 @@ http://your-server-ip:9080
 
 ## 🔒 IP Access Control (Whitelist)
 
-Control which IPs can access the backend API via the `ALLOWED_IPS` setting in `.env`:
+Control which IPs can access the backend API via the `ALLOWED_IPS` setting in `.env` (ROOT directory, NOT `server/.env`):
+
+```bash
+# Correct file location:
+nano .env              # ✅ Root directory
+# NOT: nano server/.env  # ❌ Wrong
+```
 
 | Setting | Description |
 |---------|-------------|
