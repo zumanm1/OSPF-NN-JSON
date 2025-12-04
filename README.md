@@ -120,6 +120,14 @@ brew install node@20
 
 ## 📊 Features
 
+### 4 Main Views (Tabs)
+| View | Description |
+|------|-------------|
+| **Visualizer** | Interactive network graph with path simulation |
+| **Designer** | Topology design and modification |
+| **Planner** | Scenario planning and what-if analysis |
+| **Analysis** | Capacity and utilization analytics |
+
 ### Network Visualization
 - **Interactive vis.js graph** with zoom/pan
 - **OSPF Cost Labels** on network links
@@ -128,14 +136,17 @@ brew install node@20
 - **Path highlighting** with animated visualization
 - **Country-based filtering** and grouping
 
-### Analysis Capabilities
-| Feature | Description |
-|---------|-------------|
+### Analysis Modals
+| Modal | Description |
+|-------|-------------|
 | **Path Simulation** | Dijkstra shortest path calculation |
 | **Network Health** | Health score and bottleneck detection |
 | **Ripple Effect** | Chain reaction analysis |
 | **Impact Analysis** | Link change impact simulation |
-| **Capacity Analysis** | Bandwidth utilization metrics |
+| **Path Comparison** | Compare multiple paths |
+| **Traffic Engineering** | Traffic flow optimization |
+| **Blast Radius** | Failure impact analysis |
+| **Link Inspector** | Detailed link information |
 
 ### Import/Export
 - **Import JSON topology** files
@@ -227,15 +238,19 @@ OSPF-NN-JSON/
 ├── index.html              # HTML template with favicon
 ├── public/
 │   └── favicon.svg         # OSPF network topology icon
-├── components/             # React components
+├── components/             # React components (12 total)
 │   ├── LoginPage.tsx       # Authentication UI
+│   ├── RegisterPage.tsx    # User registration
 │   ├── ChangePasswordModal.tsx
 │   ├── NetworkHealthModal.tsx
 │   ├── RippleEffectModal.tsx
 │   ├── PathComparisonModal.tsx
 │   ├── TopologyDesigner.tsx
 │   ├── ScenarioPlanner.tsx
-│   └── CapacityAnalysis.tsx
+│   ├── CapacityAnalysis.tsx
+│   ├── BlastRadiusAnalyzer.tsx
+│   ├── LinkInspector.tsx
+│   └── TrafficEngineeringModal.tsx
 ├── contexts/
 │   └── AuthContext.tsx     # Authentication state
 ├── services/
