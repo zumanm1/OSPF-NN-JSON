@@ -45,6 +45,7 @@ console.log('✅ Environment variables validated successfully');
 
 const app = express();
 const PORT = process.env.PORT || 9081;
+const HOST = process.env.SERVER_HOST || '0.0.0.0'; // Bind to all interfaces by default
 
 // Security middleware
 app.use(helmet({
@@ -236,10 +237,11 @@ app.use(errorHandler);
 // Initialize database and start server
 initDatabase()
   .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 OSPF Visualizer API Server running on port ${PORT}`);
+    app.listen(PORT, HOST, () => {
+      console.log(`🚀 OSPF Visualizer API Server running on ${HOST}:${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
       console.log(`🔒 CORS enabled for: ${allowedOrigins.join(', ')}`);
+      console.log(`🔐 IP Whitelist: ${allowedIPs.join(', ')}`);
     });
   })
   .catch((error) => {

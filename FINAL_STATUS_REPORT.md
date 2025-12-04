@@ -289,3 +289,4 @@ console.log(`Reverse edges to ${src}: ${reverseEdges.length}`);
 **Lines of Code Analyzed**: 5000+  
 **Bug Severity**: CRITICAL → RESOLVED
 
+
