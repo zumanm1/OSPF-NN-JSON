@@ -1,170 +1,213 @@
 # OSPF Visualizer Pro
 
-A powerful network topology visualization and analysis platform for OSPF networks.
+A comprehensive OSPF (Open Shortest Path First) network topology visualizer and analyzer with enterprise-grade authentication and multi-modal analysis.
 
 ![OSPF Visualizer Pro](https://img.shields.io/badge/version-1.0.0-blue.svg)
 ![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-## 🚀 Quick Start (3 Commands)
+## 🚀 Quick Start
+
+### 1. Clone the Repository
 
 ```bash
-# 1. Clone the repository
-git clone https://github.com/zumanm1/OSPF-NN-JSON.git && cd OSPF-NN-JSON
-
-# 2. Install dependencies (auto-installs Node.js if missing)
-./install.sh
-
-# 3. Start the application
-./start.sh
+git clone https://github.com/zumanm1/OSPF-NN-JSON.git
+cd OSPF-NN-JSON
 ```
 
-**Access:** http://localhost:9080
+### 2. Using Master Script (Recommended)
 
-**Login:** `netviz_admin` / `V3ry$trongAdm1n!2025`
+```bash
+# One-liner to install and start
+./netviz.sh install && ./netviz.sh deps && ./netviz.sh start
+
+# Or step by step:
+./netviz.sh install   # Install Node.js if not present
+./netviz.sh deps      # Install npm dependencies (skips if already installed)
+./netviz.sh start     # Start servers (Frontend: 9080, Backend: 9081)
+```
+
+### 3. Manual Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+# Edit .env with your secure credentials
+
+# Start development servers
+npm run start:all     # Both frontend and backend
+# OR separately:
+npm run dev           # Frontend only (port 9080)
+npm run server        # Backend only (port 9081)
+```
+
+**Access the app:** http://localhost:9080
+
+**Default credentials:** `netviz_admin` / `V3ry$trongAdm1n!2025`
 
 ---
 
-## 📋 Available Scripts
+## 📜 Available Scripts
 
 | Script | Description |
 |--------|-------------|
-| `./install.sh` | Install Node.js, npm, and all dependencies |
-| `./start.sh` | Start the application (interactive mode) |
-| `./start.sh --background` | Start in background (for servers) |
-| `./stop.sh` | Stop all running processes |
-| `./stop.sh --status` | Check if app is running |
+| `./netviz.sh install` | Install system requirements (Node.js, npm) |
+| `./netviz.sh deps` | Install project dependencies (skips if already installed) |
+| `./netviz.sh start` | Start Frontend (9080) and Backend (9081) servers |
+| `./netviz.sh stop` | Stop all running servers |
+| `./netviz.sh restart` | Restart all servers |
+| `./netviz.sh status` | Show system and server status |
+| `./netviz.sh logs` | View server logs (tail -f) |
+| `./netviz.sh clean` | Clean build artifacts and node_modules |
+| `./netviz.sh build` | Build for production |
+
+### Individual Scripts
+
+```bash
+./install.sh          # Install dependencies only
+./start.sh            # Start all servers (with menu)
+./stop.sh             # Stop all servers
+```
+
+### Script Options
+
+```bash
+# Start in background mode (for remote servers)
+./netviz.sh start --bg
+
+# Start on a custom port
+./netviz.sh start -p 3000
+
+# Force reinstall dependencies
+./netviz.sh deps --force
+
+# Using environment variable
+NETVIZ_PORT=8080 ./netviz.sh start
+```
 
 ---
 
-## 🖥️ System Requirements
+## 🛠️ System Requirements
 
-- **Node.js:** v18+ (auto-installed by `install.sh`)
-- **npm:** v9+ (auto-installed by `install.sh`)
+- **Node.js** v18.0.0+ (required)
+- **npm** v9.0.0+ (comes with Node.js)
 - **OS:** Linux (Ubuntu 20.04+) or macOS
 - **Ports:** 9080 (frontend), 9081 (backend)
 
----
+### Install Node.js
 
-## 📦 Installation Details
-
-### What `install.sh` Does:
-
-1. ✅ Checks if Node.js v18+ is installed
-2. ✅ Installs Node.js if missing (via NodeSource on Linux, Homebrew on macOS)
-3. ✅ Checks if npm v9+ is installed
-4. ✅ Upgrades npm if outdated
-5. ✅ Runs `npm install` to install all dependencies
-6. ✅ Creates `.env` configuration file with all detected network IPs
-7. ✅ Creates `.env.local` for frontend API configuration
-8. ✅ Creates `data/` directory for the database
-
----
-
-## 🚀 Starting the Application
-
-### Interactive Mode (Local Development)
+**Ubuntu/Debian:**
 ```bash
-./start.sh
+curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+sudo apt install -y nodejs
 ```
-This starts both frontend and backend with live output in the terminal.
 
-### Background Mode (Remote Servers)
+**CentOS/RHEL:**
 ```bash
-./start.sh --background
+curl -fsSL https://rpm.nodesource.com/setup_20.x | sudo bash -
+sudo yum install -y nodejs
 ```
-This starts the app in the background and shows all available URLs.
 
-### Other Start Options
+**macOS:**
 ```bash
-./start.sh --dev        # Development mode with hot reload
-./start.sh --prod       # Production mode (requires build)
-./start.sh --backend    # Backend only
-./start.sh --frontend   # Frontend only
-./start.sh --menu       # Interactive menu
-./start.sh --help       # Show all options
+brew install node@20
 ```
 
 ---
 
-## 🛑 Stopping the Application
+## 📊 Features
+
+### Network Visualization
+- **Interactive vis.js graph** with zoom/pan
+- **OSPF Cost Labels** on network links
+- **Asymmetric cost display** (forward↔reverse format)
+- **Color-coded links** (blue=normal, amber=asymmetric, red=down)
+- **Path highlighting** with animated visualization
+- **Country-based filtering** and grouping
+
+### Analysis Capabilities
+| Feature | Description |
+|---------|-------------|
+| **Path Simulation** | Dijkstra shortest path calculation |
+| **Network Health** | Health score and bottleneck detection |
+| **Ripple Effect** | Chain reaction analysis |
+| **Impact Analysis** | Link change impact simulation |
+| **Capacity Analysis** | Bandwidth utilization metrics |
+
+### Import/Export
+- **Import JSON topology** files
+- **Export topology** in multiple formats
+- **Download templates** for easy setup
+
+---
+
+## 🔐 Authentication System
+
+OSPF Visualizer Pro includes enterprise-grade authentication:
+
+- **JWT-based sessions** with secure tokens
+- **Rate limiting** on auth endpoints
+- **Helmet security headers** (CSP, HSTS, X-Frame-Options)
+- **Password change** functionality
+- **Session management**
+
+---
+
+## 🌐 Running on Remote Server
 
 ```bash
-./stop.sh              # Stop all app processes
-./stop.sh --status     # Check running status
-./stop.sh --force      # Force kill all Node processes
+# Start servers (binds to 0.0.0.0)
+./netviz.sh start --bg
+
+# Access from any machine on the network:
+# http://<server-ip>:9080
 ```
 
 ---
 
-## 🌐 Remote Server Deployment
+## 🔒 Network & IP Configuration
 
-### Step-by-Step:
-
-```bash
-# 1. SSH into your server
-ssh user@your-server-ip
-
-# 2. Clone the repository
-git clone https://github.com/zumanm1/OSPF-NN-JSON.git
-cd OSPF-NN-JSON
-
-# 3. Make scripts executable (if needed)
-chmod +x install.sh start.sh stop.sh
-
-# 4. Install dependencies
-./install.sh
-
-# 5. Start in background mode
-./start.sh --background
-```
-
-### Access from Browser:
-```
-http://your-server-ip:9080
-```
-
-### Notes:
-- The `install.sh` script automatically detects ALL network interfaces
-- CORS is configured for all detected IPs
-- Use `./stop.sh --status` to verify the app is running
-
----
-
-## 🔒 IP Access Control (Whitelist)
-
-Control which IPs can access the backend API via the `ALLOWED_IPS` setting in `.env` (ROOT directory, NOT `server/.env`):
+Configure in `.env` (ROOT directory, NOT server/.env):
 
 ```bash
-# Correct file location:
-nano .env              # ✅ Root directory
-# NOT: nano server/.env  # ❌ Wrong
+# Server Binding - Controls which interface the server listens on
+# Options: 127.0.0.1 (localhost only), 0.0.0.0 (all interfaces), or specific IP
+SERVER_HOST=0.0.0.0
+
+# IP Whitelist - Comma-separated list of allowed client IPs
+# Use 0.0.0.0 to allow all IPs (not recommended for production)
+# Examples: 127.0.0.1,192.168.1.0/24,10.0.0.5
+ALLOWED_IPS=0.0.0.0
 ```
 
 | Setting | Description |
 |---------|-------------|
-| `ALLOWED_IPS=0.0.0.0` | Allow ALL IPs (default) |
-| `ALLOWED_IPS=127.0.0.1` | Localhost only |
-| `ALLOWED_IPS=127.0.0.1,192.168.1.100` | Localhost + specific IP |
-| `ALLOWED_IPS=127.0.0.1,192.168.1.0/24` | Localhost + subnet (CIDR) |
-
-**After editing `.env`, restart the app:**
-```bash
-./stop.sh && ./start.sh
-```
-
-See [z-document-start.md](z-document-start.md#-ip-access-control-whitelist) for detailed examples.
+| `SERVER_HOST=0.0.0.0` | Listen on all network interfaces |
+| `SERVER_HOST=127.0.0.1` | Listen only on localhost |
+| `ALLOWED_IPS=0.0.0.0` | Allow connections from any IP |
+| `ALLOWED_IPS=192.168.1.0/24` | Allow only local subnet |
+| `ALLOWED_IPS=127.0.0.1,10.0.0.5` | Allow localhost + specific IP |
 
 ---
 
-## 🔐 Default Credentials
+## 🚀 Running in Production
 
-| Field | Value |
-|-------|-------|
-| **Username** | `netviz_admin` |
-| **Password** | `V3ry$trongAdm1n!2025` |
+```bash
+# Build for production
+./netviz.sh build
 
-⚠️ **Change these in production** by editing the `.env` file.
+# Or manually:
+npm run build
+
+# Preview production build
+npm run preview
+
+# Serve with any static server
+npx serve dist
+```
 
 ---
 
@@ -172,56 +215,126 @@ See [z-document-start.md](z-document-start.md#-ip-access-control-whitelist) for 
 
 ```
 OSPF-NN-JSON/
-├── install.sh          # Installation script
-├── start.sh            # Start script
-├── stop.sh             # Stop script
-├── package.json        # npm dependencies
-├── .env                # Environment config (generated)
-├── .env.local          # Frontend config (generated)
-├── App.tsx             # Main React component
-├── server/             # Backend Express server
-│   └── index.js        # Server entry point
-├── components/         # React components
-├── services/           # Business logic (Dijkstra, etc.)
-├── contexts/           # React contexts (Auth)
-├── data/               # SQLite database
-└── dist/               # Production build
+├── netviz.sh               # Master control script
+├── install.sh              # Installation script
+├── start.sh                # Start script
+├── stop.sh                 # Stop script
+├── package.json            # npm dependencies
+├── .env                    # Environment config (generated)
+├── .env.example            # Environment template
+├── App.tsx                 # Main React component
+├── main.tsx                # Application entry point
+├── index.html              # HTML template with favicon
+├── public/
+│   └── favicon.svg         # OSPF network topology icon
+├── components/             # React components
+│   ├── LoginPage.tsx       # Authentication UI
+│   ├── ChangePasswordModal.tsx
+│   ├── NetworkHealthModal.tsx
+│   ├── RippleEffectModal.tsx
+│   ├── PathComparisonModal.tsx
+│   ├── TopologyDesigner.tsx
+│   ├── ScenarioPlanner.tsx
+│   └── CapacityAnalysis.tsx
+├── contexts/
+│   └── AuthContext.tsx     # Authentication state
+├── services/
+│   ├── dijkstra.ts         # Pathfinding algorithm
+│   ├── dijkstraEnhanced.ts # Advanced pathfinding
+│   ├── pathMetrics.ts      # Path analysis
+│   └── geometry.ts         # Layout calculations
+├── server/                 # Backend
+│   ├── index.js            # Express server (port 9081)
+│   ├── database/           # SQLite operations
+│   ├── routes/             # API routes
+│   └── middleware/         # Auth & error handling
+├── data/                   # SQLite database
+└── dist/                   # Production build
+```
+
+---
+
+## 📋 Input File Format
+
+Minimum required JSON structure:
+
+```json
+{
+  "data": {
+    "nodes": [
+      {
+        "id": "R1",
+        "name": "Router-1",
+        "country": "USA",
+        "loopback_ip": "10.0.0.1"
+      }
+    ],
+    "links": [
+      {
+        "source": "R1",
+        "target": "R2",
+        "forward_cost": 10,
+        "reverse_cost": 10,
+        "status": "up"
+      }
+    ]
+  }
+}
 ```
 
 ---
 
 ## 🔧 Troubleshooting
 
-### Port Already in Use
+### Port already in use
 ```bash
-./stop.sh              # Stop the app
-./stop.sh --force      # Or force kill
+./netviz.sh stop
+# Or manually:
+lsof -ti:9080 | xargs kill -9
+lsof -ti:9081 | xargs kill -9
 ```
 
-### Permission Denied
+### npm install fails
 ```bash
-chmod +x install.sh start.sh stop.sh
+./netviz.sh clean
+./netviz.sh deps --force
 ```
 
-### Node.js Not Found After Install
+### Check server status
 ```bash
-# Reload shell
-source ~/.bashrc
-# Or restart terminal
+./netviz.sh status
 ```
 
-### Database Issues
+### View logs
 ```bash
-rm -rf data/ospf-visualizer.db
-./start.sh  # Recreates database
+./netviz.sh logs
 ```
 
-### CORS Issues on Remote Server
-Edit `.env` and add your IP:
+### App shows blank screen
+- Check browser console for errors
+- Ensure you've uploaded a valid JSON topology file
+- Verify `.env` exists and is configured
+
+### Permission denied on scripts
 ```bash
-CORS_ORIGINS=http://localhost:9080,http://YOUR_IP:9080
-ALLOWED_ORIGINS=http://localhost:9080,http://YOUR_IP:9080
+chmod +x netviz.sh install.sh start.sh stop.sh
 ```
+
+---
+
+## 🏗️ Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 19 + TypeScript |
+| Visualization | vis.js Network |
+| Build Tool | Vite 6 |
+| Styling | Tailwind CSS |
+| Icons | Lucide React |
+| Backend | Express.js |
+| Database | SQLite (better-sqlite3) |
+| Auth | JWT + bcrypt |
+| Security | Helmet + Rate Limiting |
 
 ---
 
@@ -231,18 +344,10 @@ See [z-document-start.md](z-document-start.md) for detailed documentation.
 
 ---
 
-## 📞 Support
-
-1. Check the [Troubleshooting](#troubleshooting) section
-2. Review terminal logs
-3. Open an issue on GitHub
-
----
-
 ## 📄 License
 
 MIT License - see LICENSE file for details.
 
 ---
 
-**Last Updated:** December 1, 2025
+**Last Updated:** December 4, 2025
