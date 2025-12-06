@@ -2,6 +2,7 @@
 #===============================================================================
 # OSPF Visualizer Pro - Master Control Script
 # A unified script to manage installation, dependencies, and server operations
+# Supports isolated Node.js environment via nvm
 #===============================================================================
 
 set -e
@@ -18,6 +19,7 @@ NC='\033[0m' # No Color
 # Configuration
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MIN_NODE_VERSION=18
+MAX_NODE_VERSION=24
 MIN_NPM_VERSION=9
 FRONTEND_PORT=${NETVIZ_PORT:-9080}
 BACKEND_PORT=9081
@@ -58,6 +60,72 @@ check_command() {
 }
 
 #===============================================================================
+# NVM Support Functions
+#===============================================================================
+
+check_nvm() {
+    # Check if nvm is available
+    if [ -s "$HOME/.nvm/nvm.sh" ]; then
+        return 0
+    fi
+    return 1
+}
+
+load_nvm() {
+    export NVM_DIR="$HOME/.nvm"
+    if [ -s "$NVM_DIR/nvm.sh" ]; then
+        \. "$NVM_DIR/nvm.sh" --no-use
+        return 0
+    fi
+    return 1
+}
+
+switch_to_project_node() {
+    # If nvm is installed, switch to project's required Node version
+    if check_nvm; then
+        load_nvm
+        
+        # Check if .nvmrc exists
+        if [ -f "$SCRIPT_DIR/.nvmrc" ]; then
+            local required_version=$(cat "$SCRIPT_DIR/.nvmrc")
+            local current_version=""
+            
+            if check_command node; then
+                current_version=$(node -v | sed 's/v//' | cut -d. -f1)
+            fi
+            
+            if [ "$current_version" != "$required_version" ]; then
+                print_info "Switching to Node.js v$required_version (from .nvmrc)..."
+                nvm use "$required_version" 2>/dev/null || {
+                    print_warning "Node.js v$required_version not installed via nvm"
+                    print_info "Installing Node.js v$required_version..."
+                    nvm install "$required_version"
+                    nvm use "$required_version"
+                }
+            fi
+        fi
+    fi
+}
+
+show_isolation_status() {
+    echo ""
+    echo -e "${CYAN}Node.js Environment:${NC}"
+    
+    if check_nvm; then
+        print_success "nvm installed (isolated environment supported)"
+        if [ -f "$SCRIPT_DIR/.nvmrc" ]; then
+            print_success ".nvmrc found (Node.js v$(cat $SCRIPT_DIR/.nvmrc))"
+        fi
+        if [ -f "$SCRIPT_DIR/.node-version" ]; then
+            print_success ".node-version found (Node.js v$(cat $SCRIPT_DIR/.node-version))"
+        fi
+    else
+        print_warning "nvm not installed (using system Node.js)"
+        print_info "Run './netviz.sh setup' to install nvm for isolated environment"
+    fi
+}
+
+#===============================================================================
 # System Check Functions
 #===============================================================================
 
@@ -65,7 +133,7 @@ check_node() {
     if check_command node; then
         NODE_VERSION=$(node -v | sed 's/v//')
         NODE_MAJOR=$(echo $NODE_VERSION | cut -d. -f1)
-        if [ "$NODE_MAJOR" -ge "$MIN_NODE_VERSION" ]; then
+        if [ "$NODE_MAJOR" -ge "$MIN_NODE_VERSION" ] && [ "$NODE_MAJOR" -le "$MAX_NODE_VERSION" ]; then
             return 0
         fi
     fi
@@ -95,36 +163,70 @@ check_deps_installed() {
 }
 
 #===============================================================================
+# Command: setup - First-time nvm + Node.js setup
+#===============================================================================
+
+cmd_setup() {
+    print_header "First-Time Setup: Isolated Node.js Environment"
+    
+    cd "$SCRIPT_DIR"
+    
+    if [ -x "./setup-nvm.sh" ]; then
+        ./setup-nvm.sh
+    else
+        chmod +x ./setup-nvm.sh 2>/dev/null || true
+        ./setup-nvm.sh
+    fi
+}
+
+#===============================================================================
 # Command: install - Install Node.js if not present
 #===============================================================================
 
 cmd_install() {
     print_header "Checking System Requirements"
     
+    # Try to use nvm first
+    switch_to_project_node
+    
+    show_isolation_status
+    
+    echo ""
+    echo -e "${CYAN}System Requirements:${NC}"
+    
     # Check Node.js
     if check_node; then
-        print_success "Node.js v$(node -v | sed 's/v//') is installed (required: v$MIN_NODE_VERSION+)"
+        print_success "Node.js v$(node -v | sed 's/v//') is installed (required: v$MIN_NODE_VERSION-$MAX_NODE_VERSION)"
     else
-        print_warning "Node.js not found or version too old"
-        print_info "Installing Node.js v20 LTS..."
+        print_warning "Node.js not found or version incompatible"
         
-        if [[ "$OSTYPE" == "linux-gnu"* ]]; then
-            if ! check_command curl; then
-                sudo apt-get update && sudo apt-get install -y curl
-            fi
-            curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
-            sudo apt-get install -y nodejs
-        elif [[ "$OSTYPE" == "darwin"* ]]; then
-            if check_command brew; then
-                brew install node@20
-                brew link node@20 --force --overwrite 2>/dev/null || true
+        if check_nvm; then
+            print_info "Installing Node.js v20 via nvm..."
+            load_nvm
+            nvm install 20
+            nvm use 20
+        else
+            print_info "Installing Node.js v20 LTS (system-wide)..."
+            
+            if [[ "$OSTYPE" == "linux-gnu"* ]]; then
+                if ! check_command curl; then
+                    sudo apt-get update && sudo apt-get install -y curl
+                fi
+                curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
+                sudo apt-get install -y nodejs
+            elif [[ "$OSTYPE" == "darwin"* ]]; then
+                if check_command brew; then
+                    brew install node@20
+                    brew link node@20 --force --overwrite 2>/dev/null || true
+                else
+                    print_error "Homebrew not found. Install from: https://brew.sh"
+                    print_info "Or run './netviz.sh setup' to use nvm instead"
+                    exit 1
+                fi
             else
-                print_error "Homebrew not found. Install from: https://brew.sh"
+                print_error "Unsupported OS: $OSTYPE"
                 exit 1
             fi
-        else
-            print_error "Unsupported OS: $OSTYPE"
-            exit 1
         fi
         
         if check_node; then
@@ -140,7 +242,7 @@ cmd_install() {
         print_success "npm v$(npm -v) is installed (required: v$MIN_NPM_VERSION+)"
     else
         print_warning "npm version too old, upgrading..."
-        sudo npm install -g npm@latest
+        npm install -g npm@latest 2>/dev/null || sudo npm install -g npm@latest
         print_success "npm upgraded to v$(npm -v)"
     fi
     
@@ -166,6 +268,9 @@ cmd_deps() {
     print_header "Checking Dependencies"
     
     cd "$SCRIPT_DIR"
+    
+    # Try to use correct Node version
+    switch_to_project_node
     
     # Check if deps already installed
     if [ "$FORCE" = false ] && check_deps_installed; then
@@ -292,6 +397,9 @@ cmd_start() {
     print_header "Starting OSPF Visualizer Pro"
     
     cd "$SCRIPT_DIR"
+    
+    # Switch to correct Node version
+    switch_to_project_node
     
     # Cleanup ports first
     cleanup_ports
@@ -427,11 +535,17 @@ cmd_status() {
     
     cd "$SCRIPT_DIR"
     
+    # Switch to correct Node version
+    switch_to_project_node
+    
+    show_isolation_status
+    
+    echo ""
     echo -e "${CYAN}System:${NC}"
     if check_node; then
         print_success "Node.js: v$(node -v | sed 's/v//')"
     else
-        print_error "Node.js: Not installed or version < $MIN_NODE_VERSION"
+        print_error "Node.js: Not installed or version outside v$MIN_NODE_VERSION-$MAX_NODE_VERSION range"
     fi
     
     if check_npm; then
@@ -540,6 +654,9 @@ cmd_build() {
     
     cd "$SCRIPT_DIR"
     
+    # Switch to correct Node version
+    switch_to_project_node
+    
     if ! check_deps_installed; then
         print_warning "Dependencies not installed. Installing first..."
         cmd_deps
@@ -568,28 +685,36 @@ cmd_help() {
     echo ""
     echo -e "${YELLOW}Usage:${NC} ./netviz.sh <command> [options]"
     echo ""
-    echo -e "${CYAN}Commands:${NC}"
-    echo "  install     Install system requirements (Node.js, npm)"
-    echo "  deps        Install project dependencies (skips if already installed)"
+    echo -e "${CYAN}Setup Commands:${NC}"
+    echo "  setup       First-time setup: Install nvm + Node.js v20 (isolated environment)"
+    echo "  install     Check/install system requirements (Node.js, npm)"
+    echo "  deps        Check/install project dependencies (skips if already installed)"
+    echo ""
+    echo -e "${CYAN}Server Commands:${NC}"
     echo "  start       Start frontend and backend servers"
     echo "  stop        Stop all running servers"
     echo "  restart     Restart all servers"
     echo "  status      Show system and server status"
     echo "  logs        View server logs (tail -f)"
+    echo ""
+    echo -e "${CYAN}Build Commands:${NC}"
     echo "  clean       Clean build artifacts and node_modules"
     echo "  build       Build for production"
-    echo "  help        Show this help message"
     echo ""
     echo -e "${CYAN}Options:${NC}"
     echo "  deps --force        Force reinstall dependencies"
     echo "  start --bg          Start servers in background"
     echo "  start -p PORT       Start on custom port"
     echo ""
-    echo -e "${CYAN}Examples:${NC}"
+    echo -e "${CYAN}Quick Start:${NC}"
+    echo "  # First-time setup (recommended)"
+    echo "  ./netviz.sh setup && ./netviz.sh deps && ./netviz.sh start"
+    echo ""
+    echo "  # Or if Node.js already installed"
     echo "  ./netviz.sh install && ./netviz.sh deps && ./netviz.sh start"
-    echo "  ./netviz.sh start --bg"
-    echo "  ./netviz.sh deps --force"
-    echo "  NETVIZ_PORT=8080 ./netviz.sh start"
+    echo ""
+    echo -e "${CYAN}Returning Users:${NC}"
+    echo "  ./netviz.sh start    # Auto-switches to correct Node version if nvm installed"
     echo ""
     echo -e "${CYAN}Environment Variables:${NC}"
     echo "  NETVIZ_PORT         Custom frontend port (default: 9080)"
@@ -604,6 +729,7 @@ main() {
     cd "$SCRIPT_DIR"
     
     case "${1:-help}" in
+        setup)      shift; cmd_setup "$@" ;;
         install)    shift; cmd_install "$@" ;;
         deps)       shift; cmd_deps "$@" ;;
         start)      shift; cmd_start "$@" ;;
@@ -623,4 +749,3 @@ main() {
 }
 
 main "$@"
-

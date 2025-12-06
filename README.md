@@ -3,7 +3,7 @@
 A comprehensive OSPF (Open Shortest Path First) network topology visualizer and analyzer with enterprise-grade authentication and multi-modal analysis.
 
 ![OSPF Visualizer Pro](https://img.shields.io/badge/version-1.0.0-blue.svg)
-![Node.js](https://img.shields.io/badge/node-%3E%3D18.0.0-green.svg)
+![Node.js](https://img.shields.io/badge/node-18--24-green.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
 ## 🚀 Quick Start
@@ -15,33 +15,39 @@ git clone https://github.com/zumanm1/OSPF-NN-JSON.git
 cd OSPF-NN-JSON
 ```
 
-### 2. Using Master Script (Recommended)
+### 2. First-Time Setup (Recommended)
 
 ```bash
-# One-liner to install and start
-./netviz.sh install && ./netviz.sh deps && ./netviz.sh start
+# Option A: Full isolated setup with nvm (recommended)
+./netviz.sh setup     # Installs nvm + Node.js v20 (one-time)
+./netviz.sh deps      # Install npm dependencies
+./netviz.sh start     # Start servers
 
-# Or step by step:
-./netviz.sh install   # Install Node.js if not present
-./netviz.sh deps      # Install npm dependencies (skips if already installed)
-./netviz.sh start     # Start servers (Frontend: 9080, Backend: 9081)
+# Option B: Quick start (if Node.js already installed)
+./netviz.sh install && ./netviz.sh deps && ./netviz.sh start
 ```
 
-### 3. Manual Installation
+### 3. Returning Users
 
 ```bash
-# Install dependencies
+# Just start - auto-switches to correct Node version if nvm installed
+./netviz.sh start
+```
+
+### 4. Manual Installation
+
+```bash
+# Install frontend dependencies
 npm install
 
-# Create environment file
+# Setup environment
 cp .env.example .env
 # Edit .env with your secure credentials
 
-# Start development servers
-npm run start:all     # Both frontend and backend
-# OR separately:
-npm run dev           # Frontend only (port 9080)
-npm run server        # Backend only (port 9081)
+# Start development server
+npm run dev           # Vite only (port 9080)
+# OR for full stack with auth:
+npm run start:all     # All servers
 ```
 
 **Access the app:** http://localhost:9080
@@ -52,21 +58,36 @@ npm run server        # Backend only (port 9081)
 
 ## 📜 Available Scripts
 
+### Setup Commands
+
 | Script | Description |
 |--------|-------------|
-| `./netviz.sh install` | Install system requirements (Node.js, npm) |
-| `./netviz.sh deps` | Install project dependencies (skips if already installed) |
+| `./netviz.sh setup` | **First-time setup**: Install nvm + Node.js v20 (isolated environment) |
+| `./netviz.sh install` | Check/install system requirements (Node.js, npm) |
+| `./netviz.sh deps` | Check/install project dependencies (skips if already installed) |
+| `./setup-nvm.sh` | Standalone nvm + Node.js environment setup script |
+
+### Server Commands
+
+| Script | Description |
+|--------|-------------|
 | `./netviz.sh start` | Start Frontend (9080) and Backend (9081) servers |
 | `./netviz.sh stop` | Stop all running servers |
 | `./netviz.sh restart` | Restart all servers |
 | `./netviz.sh status` | Show system and server status |
 | `./netviz.sh logs` | View server logs (tail -f) |
+
+### Build Commands
+
+| Script | Description |
+|--------|-------------|
 | `./netviz.sh clean` | Clean build artifacts and node_modules |
 | `./netviz.sh build` | Build for production |
 
 ### Individual Scripts
 
 ```bash
+./setup-nvm.sh        # Setup nvm + Node.js (interactive)
 ./install.sh          # Install dependencies only
 ./start.sh            # Start all servers (with menu)
 ./stop.sh             # Stop all servers
@@ -75,11 +96,11 @@ npm run server        # Backend only (port 9081)
 ### Script Options
 
 ```bash
-# Start in background mode (for remote servers)
-./netviz.sh start --bg
-
 # Start on a custom port
 ./netviz.sh start -p 3000
+
+# Start in background mode
+./netviz.sh start --bg
 
 # Force reinstall dependencies
 ./netviz.sh deps --force
@@ -90,14 +111,115 @@ NETVIZ_PORT=8080 ./netviz.sh start
 
 ---
 
+## 🔒 Isolated Node.js Environment
+
+This project uses **isolated Node.js/npm versions** to avoid conflicts with other projects on your machine.
+
+### Quick Setup (Recommended)
+
+```bash
+# One command to install nvm + Node.js v20
+./netviz.sh setup
+
+# Or use the standalone script
+./setup-nvm.sh
+```
+
+This will:
+1. Install nvm (Node Version Manager) if not present
+2. Install Node.js v20 LTS
+3. Configure your shell for auto-switching
+4. Display next steps
+
+### Version Pinning Files
+
+| File | Purpose | Tool Support |
+|------|---------|--------------|
+| `.nvmrc` | Pins Node v20 | nvm, fnm |
+| `.node-version` | Pins Node v20 | fnm, volta, nodenv |
+| `package.json` engines | Enforces Node 18-24, npm 9+ | npm |
+| `package.json` packageManager | Pins npm@10.8.2 | corepack |
+
+### Using nvm (Recommended)
+
+```bash
+# Option 1: Use our setup script (easiest)
+./netviz.sh setup
+
+# Option 2: Manual nvm installation
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.40.1/install.sh | bash
+
+# Restart terminal, then:
+cd OSPF-NN-JSON
+nvm use          # Automatically uses Node v20 from .nvmrc
+
+# Or manually:
+nvm install 20
+nvm use 20
+```
+
+### Using Volta (Alternative)
+
+```bash
+# Install Volta
+curl https://get.volta.sh | bash
+
+# Pin versions for this project
+cd OSPF-NN-JSON
+volta pin node@20
+volta pin npm@10
+```
+
+### Using fnm (Fast Alternative)
+
+```bash
+# Install fnm
+curl -fsSL https://fnm.vercel.app/install | bash
+
+# Use project version
+cd OSPF-NN-JSON
+fnm use          # Reads .node-version
+```
+
+### Automatic Version Switching
+
+All `./netviz.sh` commands automatically:
+1. Detect if nvm is installed
+2. Switch to the project's required Node version (v20)
+3. Warn if using an incompatible version
+
+```bash
+./netviz.sh setup     # Install nvm + Node.js (first-time)
+./netviz.sh install   # Shows isolation status and switches Node version
+./netviz.sh start     # Auto-loads correct Node version before starting
+./netviz.sh deps      # Auto-loads correct Node version before installing
+```
+
+### Shell Auto-Switching (Optional)
+
+Add this to your `~/.zshrc` or `~/.bashrc` for automatic version switching when entering the project directory:
+
+```bash
+# Auto-switch Node version when entering directory with .nvmrc
+autoload -U add-zsh-hook 2>/dev/null
+load-nvmrc() {
+  if [ -f .nvmrc ]; then
+    nvm use 2>/dev/null
+  fi
+}
+add-zsh-hook chpwd load-nvmrc 2>/dev/null
+```
+
+---
+
 ## 🛠️ System Requirements
 
-- **Node.js** v18.0.0+ (required)
+- **Node.js** v18.0.0 - v24.x (v20 LTS recommended)
 - **npm** v9.0.0+ (comes with Node.js)
 - **OS:** Linux (Ubuntu 20.04+) or macOS
 - **Ports:** 9080 (frontend), 9081 (backend)
 
-### Install Node.js
+### Install Node.js (Manual)
 
 **Ubuntu/Debian:**
 ```bash
@@ -227,10 +349,13 @@ npx serve dist
 ```
 OSPF-NN-JSON/
 ├── netviz.sh               # Master control script
+├── setup-nvm.sh            # NVM + Node.js setup script
 ├── install.sh              # Installation script
 ├── start.sh                # Start script
 ├── stop.sh                 # Stop script
-├── package.json            # npm dependencies
+├── .nvmrc                  # Node version pin (v20)
+├── .node-version           # Node version pin (v20)
+├── package.json            # npm dependencies (engines: Node 18-24)
 ├── .env                    # Environment config (generated)
 ├── .env.example            # Environment template
 ├── App.tsx                 # Main React component
@@ -332,7 +457,15 @@ lsof -ti:9081 | xargs kill -9
 
 ### Permission denied on scripts
 ```bash
-chmod +x netviz.sh install.sh start.sh stop.sh
+chmod +x netviz.sh setup-nvm.sh install.sh start.sh stop.sh
+```
+
+### Node version mismatch
+```bash
+# Use nvm to switch to correct version
+./netviz.sh setup
+# Or manually:
+nvm use
 ```
 
 ---
@@ -365,4 +498,4 @@ MIT License - see LICENSE file for details.
 
 ---
 
-**Last Updated:** December 4, 2025
+**Last Updated:** December 6, 2025
