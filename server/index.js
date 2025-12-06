@@ -9,6 +9,7 @@ import customLinksRoutes from './routes/customLinks.js';
 import scenariosRoutes from './routes/scenarios.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { initDatabase } from './database/db.js';
+import { initAuthVault, getAuthMode, isAuthVaultActive, getAuthConfig } from './lib/auth-unified.js';
 
 // Load environment variables
 dotenv.config();
@@ -203,7 +204,9 @@ app.get('/api/health', async (req, res) => {
     status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    environment: process.env.NODE_ENV || 'development'
+    environment: process.env.NODE_ENV || 'development',
+    authVault: isAuthVaultActive() ? 'active' : 'inactive',
+    authMode: getAuthMode()
   };
 
   // Check database connectivity
@@ -222,6 +225,11 @@ app.get('/api/health', async (req, res) => {
   res.status(statusCode).json(health);
 });
 
+// Auth config endpoint for frontend
+app.get('/api/auth/config', (req, res) => {
+  res.json(getAuthConfig());
+});
+
 // Routes
 app.use('/api/auth/login', authLoginLimiter);
 app.use('/api/auth/register', authRegisterLimiter);
@@ -235,19 +243,31 @@ app.use('/api/scenarios', scenariosRoutes);
 app.use(errorHandler);
 
 // Initialize database and start server
-initDatabase()
-  .then(() => {
+async function startServer() {
+  try {
+    await initDatabase();
+
+    // Initialize Auth-Vault
+    const authVaultActive = await initAuthVault();
+
     app.listen(PORT, HOST, () => {
       console.log(`🚀 OSPF Visualizer API Server running on ${HOST}:${PORT}`);
       console.log(`📊 Environment: ${process.env.NODE_ENV}`);
       console.log(`🔒 CORS enabled for: ${allowedOrigins.join(', ')}`);
       console.log(`🔐 IP Whitelist: ${allowedIPs.join(', ')}`);
+      if (authVaultActive) {
+        console.log(`🔑 Auth-Vault: Active (mode: ${getAuthMode()})`);
+      } else {
+        console.log(`🔑 Auth-Vault: Inactive (using legacy auth)`);
+      }
     });
-  })
-  .catch((error) => {
-    console.error('❌ Failed to initialize database:', error);
+  } catch (error) {
+    console.error('❌ Failed to initialize:', error);
     process.exit(1);
-  });
+  }
+}
+
+startServer();
 
 // Graceful shutdown
 process.on('SIGTERM', () => {
