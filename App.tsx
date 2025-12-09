@@ -78,6 +78,14 @@ interface CustomLink {
   createdAt: Date;
 }
 
+interface HighlightPathSpec {
+  id: string;
+  nodes: string[];
+  edges: string[];
+  color: string;
+  isECMP?: boolean;
+}
+
 interface AppUser {
   id: number;
   username: string;
@@ -106,6 +114,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
 
   const nodesDataSet = useRef<DataSet<VisNode>>(new DataSet<VisNode>([]));
   const edgesDataSet = useRef<DataSet<VisEdge>>(new DataSet<VisEdge>([]));
+  const highlightedPathsRef = useRef<HighlightPathSpec[]>([]);
 
   // State to track current nodes for dropdowns (synced with nodesDataSet)
   const [currentNodesList, setCurrentNodesList] = useState<VisNode[]>([]);
@@ -210,6 +219,98 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
       addLog('❌ Error saving custom links');
     }
   });
+
+  // --- Path Highlighting Helpers ---
+  const resetHighlights = useCallback(() => {
+    const edges = edgesDataSet.current.get();
+    const nodes = nodesDataSet.current.get();
+    const defaultEdgeColor = isDark ? '#334155' : '#cbd5e1';
+    const defaultNodeBorder = isDark ? '#94a3b8' : '#334155';
+    const defaultNodeSize = visualConfigRef.current.nodeSize;
+
+    if (edges.length) {
+      edgesDataSet.current.update(edges.map(e => ({
+        id: e.id,
+        color: { color: e.baseColor || e.color?.color || defaultEdgeColor },
+        width: visualConfigRef.current.linkWidth,
+        dashes: false
+      })));
+    }
+
+    if (nodes.length) {
+      nodesDataSet.current.update(nodes.map(n => ({
+        id: n.id,
+        size: defaultNodeSize,
+        color: {
+          background: n.color?.background || COUNTRIES[n.country || ''] || '#94a3b8',
+          border: defaultNodeBorder
+        }
+      })));
+    }
+
+    highlightedPathsRef.current = [];
+  }, [isDark]);
+
+  const applyPathHighlights = useCallback((paths: HighlightPathSpec[]) => {
+    if (!networkRef.current) return;
+
+    resetHighlights();
+    highlightedPathsRef.current = paths;
+
+    const defaultWidth = visualConfigRef.current.linkWidth;
+    const defaultNodeSize = visualConfigRef.current.nodeSize;
+    const nodeUpdates = new Map<string, { id: string; size: number; color: { background?: string; border?: string } }>();
+    const edgeUpdates: Array<{ id: string; color: { color: string }; width: number; dashes?: boolean | number[] }> = [];
+    const focusNodes = new Set<string>();
+
+    paths.forEach(path => {
+      path.nodes.forEach(nid => {
+        focusNodes.add(nid);
+        const existing = nodeUpdates.get(nid);
+        const currentNode = nodesDataSet.current.get(nid);
+        const baseBackground = currentNode?.color?.background || COUNTRIES[currentNode?.country || ''] || '#94a3b8';
+        const previousSize = existing?.size ?? defaultNodeSize;
+        const updated = {
+          id: nid,
+          size: Math.max(previousSize, defaultNodeSize + 6),
+          color: {
+            background: baseBackground,
+            border: path.color
+          }
+        };
+        nodeUpdates.set(nid, updated);
+      });
+
+      path.edges.forEach(eid => {
+        edgeUpdates.push({
+          id: eid,
+          color: { color: path.color },
+          width: defaultWidth + 3,
+          dashes: path.isECMP || false
+        });
+      });
+    });
+
+    if (edgeUpdates.length) {
+      edgesDataSet.current.update(edgeUpdates);
+    }
+    if (nodeUpdates.size) {
+      nodesDataSet.current.update(Array.from(nodeUpdates.values()));
+    }
+    if (focusNodes.size) {
+      networkRef.current.fit({
+        nodes: Array.from(focusNodes),
+        animation: { duration: 500, easingFunction: 'easeInOutQuad' }
+      });
+    }
+  }, [resetHighlights]);
+
+  // Reapply active highlights when theme changes
+  useEffect(() => {
+    if (highlightedPathsRef.current.length > 0) {
+      applyPathHighlights(highlightedPathsRef.current);
+    }
+  }, [isDark, applyPathHighlights]);
 
   // Topology Planner State (dropdown-based link creation)
   const [plannerFromNode, setPlannerFromNode] = useState<string>('');
@@ -376,6 +477,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
         arrows: "to",
         smooth: { type: "curvedCW", roundness: 0.15 },
         width: currentConfig.linkWidth,
+        baseColor: themeColors.edgeDefault,
         color: { color: themeColors.edgeDefault, highlight: "#ef4444" },
         cost: lnk.costAB,
         ifaceFrom: lnk.ifA,
@@ -393,6 +495,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
         arrows: "to",
         smooth: { type: "curvedCW", roundness: 0.15 },
         width: currentConfig.linkWidth,
+        baseColor: themeColors.edgeDefault,
         color: { color: themeColors.edgeDefault, highlight: "#ef4444" },
         cost: lnk.costBA,
         ifaceFrom: lnk.ifB,
@@ -413,6 +516,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
         arrows: "to",
         smooth: { type: "curvedCW", roundness: 0.15 },
         width: currentConfig.linkWidth,
+        baseColor: '#22c55e',
         color: { color: '#22c55e', highlight: "#ef4444" },
         cost: lnk.forwardCost,
         ifaceFrom: 'Custom',
@@ -428,6 +532,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
         arrows: "to",
         smooth: { type: "curvedCW", roundness: 0.15 },
         width: currentConfig.linkWidth,
+        baseColor: '#22c55e',
         color: { color: '#22c55e', highlight: "#ef4444" },
         cost: lnk.reverseCost,
         ifaceFrom: 'Custom',
@@ -554,17 +659,9 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
             filter: (item) => item.logicalId === edge.logicalId
           });
 
-          // Reset all
-          const allEdges = edgesDataSet.current.get();
-          const defaultColor = isDark ? '#334155' : '#cbd5e1';
+          // Reset all highlights before applying new selection
+          resetHighlights();
           const defaultWidth = visualConfigRef.current.linkWidth;
-
-          edgesDataSet.current.update(allEdges.map(e => ({
-            id: e.id,
-            width: defaultWidth,
-            color: { color: defaultColor },
-            dashes: false
-          })));
 
           // Highlight
           edgesDataSet.current.update(relatedEdges.map(e => {
@@ -585,30 +682,11 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
 
           addLog(`Selected Router: ${node.label} (${node.country})`);
           setSelectedEdgeId(null);
-          // Reset styles
-          const allEdges = edgesDataSet.current.get();
-          const defaultColor = isDark ? '#334155' : '#cbd5e1';
-          const defaultWidth = visualConfigRef.current.linkWidth;
-
-          edgesDataSet.current.update(allEdges.map(e => ({
-            id: e.id,
-            width: defaultWidth,
-            color: { color: defaultColor },
-            dashes: false
-          })));
+          resetHighlights();
         }
       } else {
         setSelectedEdgeId(null);
-        const allEdges = edgesDataSet.current.get();
-        const defaultColor = isDark ? '#334155' : '#cbd5e1';
-        const defaultWidth = visualConfigRef.current.linkWidth;
-
-        edgesDataSet.current.update(allEdges.map(e => ({
-          id: e.id,
-          width: defaultWidth,
-          color: { color: defaultColor },
-          dashes: false
-        })));
+        resetHighlights();
       }
     });
 
@@ -724,7 +802,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
     })));
     edgesDataSet.current.update(rawEdges.map(e => ({
       id: e.id,
-      color: { color: defaultEdgeColor },
+      color: { color: e.baseColor || e.color?.color || defaultEdgeColor },
       width: defaultWidth,
       dashes: false
     })));
@@ -1181,7 +1259,8 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
           arrows: "to",
           smooth: { type: "curvedCW", roundness: 0.15 },
           width: visualConfigRef.current.linkWidth,
-          color: { color: '#22c55e', highlight: "#ef4444" },
+        baseColor: '#22c55e',
+        color: { color: '#22c55e', highlight: "#ef4444" },
           cost: reverseCost,
           ifaceFrom: 'NewInterface',
           ifaceTo: 'NewInterface',
@@ -1231,6 +1310,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
         arrows: "to",
         smooth: { type: "curvedCW", roundness: 0.15 },
         width: visualConfigRef.current.linkWidth,
+        baseColor: '#22c55e',
         color: { color: '#22c55e', highlight: "#ef4444" },
         cost: forwardCost,
         ifaceFrom: 'CustomInterface',
@@ -1246,6 +1326,7 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
         arrows: "to",
         smooth: { type: "curvedCW", roundness: 0.15 },
         width: visualConfigRef.current.linkWidth,
+        baseColor: '#22c55e',
         color: { color: '#22c55e', highlight: "#ef4444" },
         cost: reverseCost,
         ifaceFrom: 'CustomInterface',
@@ -1548,7 +1629,8 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
                 label: buildLabel('forward'),
                 title: buildTooltip('forward'),
                 arrows: "to",
-                color: { color: edgeColor, highlight: "#ef4444" },
+              baseColor: edgeColor,
+              color: { color: edgeColor, highlight: "#ef4444" },
                 width: visualConfig.linkWidth,
                 cost: l.forward_cost,
                 reverseCost: l.reverse_cost,
@@ -1572,7 +1654,8 @@ export default function App({ user, onChangePassword, onLogout }: AppProps = {})
                 label: buildLabel('reverse'),
                 title: buildTooltip('reverse'),
                 arrows: "to",
-                color: { color: edgeColor, highlight: "#ef4444" },
+              baseColor: edgeColor,
+              color: { color: edgeColor, highlight: "#ef4444" },
                 width: visualConfig.linkWidth,
                 cost: l.reverse_cost,
                 reverseCost: l.forward_cost,

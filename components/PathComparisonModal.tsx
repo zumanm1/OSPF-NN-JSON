@@ -8,6 +8,8 @@ interface PathComparisonModalProps {
     onClose: () => void;
     nodes: VisNode[];
     edges: VisEdge[];
+    onHighlightPaths?: (paths: Array<{ id: string; color: string; nodeSequence: string[]; edgeSequence: string[]; isECMP?: boolean }>) => void;
+    onClearHighlights?: () => void;
 }
 
 type Tab = 'comparison' | 'ecmp' | 'scenarios';
@@ -22,7 +24,7 @@ interface PathInfo extends PathResult {
 
 const PATH_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#8b5cf6'];
 
-export const PathComparisonModal: React.FC<PathComparisonModalProps> = ({ isOpen, onClose, nodes, edges }) => {
+export const PathComparisonModal: React.FC<PathComparisonModalProps> = ({ isOpen, onClose, nodes, edges, onHighlightPaths, onClearHighlights }) => {
     const [activeTab, setActiveTab] = useState<Tab>('comparison');
     const [selectedPaths, setSelectedPaths] = useState<PathInfo[]>([]);
     const [sourceId, setSourceId] = useState('');
@@ -41,6 +43,25 @@ export const PathComparisonModal: React.FC<PathComparisonModalProps> = ({ isOpen
         }
         return () => window.removeEventListener('keydown', handleEsc);
     }, [isOpen, onClose]);
+
+    useEffect(() => {
+        if (!isOpen) {
+            onClearHighlights?.();
+            return;
+        }
+
+        onHighlightPaths?.(selectedPaths.map(p => ({
+            id: p.id,
+            color: p.color,
+            nodeSequence: p.nodeSequence,
+            edgeSequence: p.edgeSequence,
+            isECMP: p.isECMP
+        })));
+
+        return () => {
+            onClearHighlights?.();
+        };
+    }, [isOpen, selectedPaths, onHighlightPaths, onClearHighlights]);
 
     if (!isOpen) return null;
 

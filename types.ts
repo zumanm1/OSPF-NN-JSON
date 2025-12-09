@@ -74,6 +74,7 @@ export interface VisEdge {
     roundness: number;
   };
   width?: number;
+  baseColor?: string;
   color?: {
     color: string;
     highlight?: string;
