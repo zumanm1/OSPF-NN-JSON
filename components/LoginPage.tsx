@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { Lock, User, AlertCircle, Eye, EyeOff, LogIn, Network, Zap, Shield, Activity } from 'lucide-react';
+import { Lock, User, AlertCircle, Eye, EyeOff, LogIn, Network, Zap, Shield, Activity, KeyRound } from 'lucide-react';
 
 interface LoginPageProps {
   onSwitchToRegister?: () => void;
 }
 
 export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
-  const { login } = useAuth();
+  const { login, loginWithKeycloak, authMode } = useAuth();
   const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -100,6 +100,32 @@ export function LoginPage({ onSwitchToRegister }: LoginPageProps) {
                       <div>
                         <p className="text-sm font-medium text-red-300">Authentication Failed</p>
                         <p className="text-xs text-red-400 mt-1">{error}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Keycloak SSO Button */}
+                  {authMode === 'keycloak' && (
+                    <div className="space-y-4">
+                      <button
+                        type="button"
+                        onClick={loginWithKeycloak}
+                        className="relative w-full group/btn overflow-hidden"
+                      >
+                        <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-600 to-cyan-600 rounded-xl blur opacity-50 group-hover/btn:opacity-75 transition duration-300"></div>
+                        <div className="relative flex items-center justify-center gap-2 py-3.5 px-4 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold rounded-xl shadow-lg transition-all duration-200">
+                          <KeyRound className="w-5 h-5" />
+                          <span>Sign in with SSO</span>
+                        </div>
+                      </button>
+
+                      <div className="relative">
+                        <div className="absolute inset-0 flex items-center">
+                          <div className="w-full border-t border-slate-700"></div>
+                        </div>
+                        <div className="relative flex justify-center text-xs uppercase">
+                          <span className="px-2 bg-slate-900 text-slate-500">Or use local credentials</span>
+                        </div>
                       </div>
                     </div>
                   )}

@@ -1,7 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { keycloak } from '../utils/keycloak';
+
+export type AuthMode = 'legacy' | 'keycloak';
 
 interface User {
-  id: number;
+  id: number | string;
   username: string;
   email: string;
   fullName?: string;
@@ -9,6 +12,7 @@ interface User {
   loginCount?: number;
   loginCountSincePwdChange?: number;
   loginsRemaining?: number;
+  authSource?: 'legacy' | 'keycloak';
 }
 
 interface AuthContextType {
@@ -18,7 +22,9 @@ interface AuthContextType {
   backendAvailable: boolean;
   backendError: string | null;
   mustChangePassword: boolean;
+  authMode: AuthMode;
   login: (email: string, password: string) => Promise<void>;
+  loginWithKeycloak: () => void;
   register: (username: string, email: string, password: string, fullName?: string) => Promise<void>;
   logout: () => void;
   isAuthenticated: boolean;
@@ -36,6 +42,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [backendAvailable, setBackendAvailable] = useState(true);
   const [backendError, setBackendError] = useState<string | null>(null);
   const [mustChangePassword, setMustChangePassword] = useState(false);
+  const [authMode, setAuthMode] = useState<AuthMode>('legacy');
 
   // Check backend health
   const checkBackendHealth = useCallback(async (): Promise<boolean> => {
@@ -91,20 +98,53 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Load token from localStorage on mount
+  // Load token and check Keycloak on mount
   useEffect(() => {
-    const storedToken = localStorage.getItem('authToken');
-    console.log('AuthContext: Mounting, storedToken:', storedToken);
-    if (storedToken) {
-      console.log('AuthContext: Found token, verifying...');
-      setToken(storedToken);
-      verifyToken(storedToken);
-    } else {
-      console.log('AuthContext: No token found');
-      setIsLoading(false);
-      // Check backend health even without a token
-      checkBackendHealth();
-    }
+    const initAuth = async () => {
+      // Try to initialize Keycloak first
+      const keycloakAvailable = await keycloak.init();
+
+      if (keycloakAvailable && keycloak.isAuthenticated()) {
+        const userInfo = keycloak.getUserInfo();
+        if (userInfo) {
+          const keycloakToken = keycloak.getAccessToken();
+          if (keycloakToken) setToken(keycloakToken);
+          setUser({
+            id: userInfo.id,
+            username: userInfo.username,
+            email: userInfo.email || '',
+            role: userInfo.roles[0] || 'user',
+            authSource: 'keycloak',
+          });
+          setAuthMode('keycloak');
+          setBackendAvailable(true);
+          setIsLoading(false);
+          return;
+        }
+      }
+
+      if (keycloakAvailable) {
+        setAuthMode('keycloak');
+        setIsLoading(false);
+        return;
+      }
+
+      // Fall back to legacy token
+      const storedToken = localStorage.getItem('authToken');
+      console.log('AuthContext: Mounting, storedToken:', storedToken);
+      if (storedToken) {
+        console.log('AuthContext: Found token, verifying...');
+        setToken(storedToken);
+        verifyToken(storedToken);
+      } else {
+        console.log('AuthContext: No token found');
+        setIsLoading(false);
+        checkBackendHealth();
+      }
+      setAuthMode('legacy');
+    };
+
+    initAuth();
   }, [verifyToken, checkBackendHealth]);
 
   const login = async (email: string, password: string) => {
@@ -178,7 +218,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const loginWithKeycloak = () => {
+    if (keycloak.isAvailable()) {
+      keycloak.login();
+    } else {
+      console.error('[Auth] Keycloak is not available');
+    }
+  };
+
   const logout = async () => {
+    // Handle Keycloak logout
+    if (authMode === 'keycloak' && user?.authSource === 'keycloak') {
+      keycloak.logout();
+      return;
+    }
+
     try {
       if (token) {
         await fetch(`${API_URL}/auth/logout`, {
@@ -205,7 +259,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     backendAvailable,
     backendError,
     mustChangePassword,
+    authMode,
     login,
+    loginWithKeycloak,
     register,
     logout,
     isAuthenticated: !!token && !!user,
