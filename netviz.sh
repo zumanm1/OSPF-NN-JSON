@@ -451,19 +451,38 @@ cmd_start() {
 
 cleanup_ports() {
     print_info "Cleaning up ports $FRONTEND_PORT and $BACKEND_PORT..."
-    
+
     for port in $FRONTEND_PORT $BACKEND_PORT; do
         if check_command lsof; then
-            lsof -ti:$port 2>/dev/null | xargs kill -9 2>/dev/null || true
+            # Graceful shutdown first (SIGTERM)
+            for pid in $(lsof -ti:$port 2>/dev/null); do
+                kill -TERM $pid 2>/dev/null || true
+            done
+        elif check_command fuser; then
+            fuser -k -TERM $port/tcp 2>/dev/null || true
+        fi
+    done
+
+    sleep 2
+
+    # Force kill if still running (SIGKILL)
+    for port in $FRONTEND_PORT $BACKEND_PORT; do
+        if check_command lsof; then
+            for pid in $(lsof -ti:$port 2>/dev/null); do
+                kill -9 $pid 2>/dev/null || true
+            done
         elif check_command fuser; then
             fuser -k $port/tcp 2>/dev/null || true
         fi
     done
-    
-    # Kill any existing vite/node processes for this project
-    pkill -f "vite.*$SCRIPT_DIR" 2>/dev/null || true
-    pkill -f "node.*server.*$SCRIPT_DIR" 2>/dev/null || true
-    
+
+    # Kill any existing vite/node processes for this project (graceful first)
+    pkill -TERM -f "vite.*$SCRIPT_DIR" 2>/dev/null || true
+    pkill -TERM -f "node.*server.*$SCRIPT_DIR" 2>/dev/null || true
+    sleep 1
+    pkill -9 -f "vite.*$SCRIPT_DIR" 2>/dev/null || true
+    pkill -9 -f "node.*server.*$SCRIPT_DIR" 2>/dev/null || true
+
     sleep 1
     print_success "Ports cleaned up"
 }
@@ -490,28 +509,51 @@ show_access_urls() {
 
 cmd_stop() {
     print_header "Stopping OSPF Visualizer Pro"
-    
+
     cd "$SCRIPT_DIR"
-    
-    # Kill by port
+
+    # Graceful shutdown by port (SIGTERM first)
     for port in $FRONTEND_PORT $BACKEND_PORT; do
-        print_info "Checking port $port..."
+        print_info "Stopping port $port gracefully..."
         if check_command lsof; then
             PIDS=$(lsof -ti:$port 2>/dev/null || echo "")
             if [ -n "$PIDS" ]; then
-                echo "$PIDS" | xargs kill -9 2>/dev/null && print_success "Killed process(es) on port $port"
+                for pid in $PIDS; do
+                    kill -TERM $pid 2>/dev/null || true
+                done
+                print_info "Sent SIGTERM to process(es) on port $port"
             else
                 print_info "No process on port $port"
             fi
         elif check_command fuser; then
-            fuser -k $port/tcp 2>/dev/null && print_success "Killed process on port $port" || print_info "No process on port $port"
+            fuser -k -TERM $port/tcp 2>/dev/null || true
         fi
     done
-    
-    # Kill related processes
-    pkill -f "vite" 2>/dev/null && print_success "Killed Vite processes" || true
-    pkill -f "node.*server" 2>/dev/null && print_success "Killed Node server processes" || true
-    
+
+    sleep 2
+
+    # Force kill any remaining (SIGKILL)
+    for port in $FRONTEND_PORT $BACKEND_PORT; do
+        if check_command lsof; then
+            PIDS=$(lsof -ti:$port 2>/dev/null || echo "")
+            if [ -n "$PIDS" ]; then
+                for pid in $PIDS; do
+                    kill -9 $pid 2>/dev/null || true
+                done
+                print_success "Force killed process(es) on port $port"
+            fi
+        elif check_command fuser; then
+            fuser -k $port/tcp 2>/dev/null || true
+        fi
+    done
+
+    # Kill related processes (graceful then force)
+    pkill -TERM -f "vite" 2>/dev/null || true
+    pkill -TERM -f "node.*server" 2>/dev/null || true
+    sleep 1
+    pkill -9 -f "vite" 2>/dev/null && print_success "Killed Vite processes" || true
+    pkill -9 -f "node.*server" 2>/dev/null && print_success "Killed Node server processes" || true
+
     echo ""
     print_success "All servers stopped"
 }
