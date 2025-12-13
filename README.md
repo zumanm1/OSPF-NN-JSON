@@ -56,6 +56,83 @@ npm run start:all     # All servers
 
 ---
 
+## 🔐 Standalone Setup with App0 (Auth-Vault)
+
+If you want to run **only App3 (NN-JSON)** with centralized authentication from App0, follow these steps:
+
+### Prerequisites
+
+- Ubuntu 20.04+ or compatible Linux
+- Node.js v24.x, npm 11.x
+- Java 17+ (for Keycloak)
+
+### Step 1: Clone App0 (Auth-Vault)
+
+```bash
+cd ~
+mkdir -p the-6-apps && cd the-6-apps
+
+# Clone App0 (Auth-Vault)
+git clone https://github.com/zumanm1/auth-vault.git app0-auth-vault
+```
+
+### Step 2: Start App0 Services (Keycloak + Vault)
+
+```bash
+cd ~/the-6-apps/app0-auth-vault
+./auth-vault.sh install   # First time only
+./auth-vault.sh start
+```
+
+**Verify App0 is running:**
+```bash
+curl http://localhost:9120/health/ready  # Keycloak
+curl http://localhost:9121/v1/sys/health # Vault
+```
+
+### Step 3: Clone and Start App3 (NN-JSON)
+
+```bash
+cd ~/the-6-apps
+
+# Clone App3
+git clone https://github.com/zumanm1/ospf-nn-json.git app3-nn-json
+cd app3-nn-json
+
+# Install and start
+./netviz.sh install
+./netviz.sh deps
+./netviz.sh start
+```
+
+### Step 4: Verify Both Apps Running
+
+| Service | Port | URL | Health Check |
+|---------|------|-----|--------------|
+| Keycloak (App0) | 9120 | http://localhost:9120/admin | `curl localhost:9120/health/ready` |
+| Vault (App0) | 9121 | http://localhost:9121/ui | `curl localhost:9121/v1/sys/health` |
+| Frontend (App3) | 9080 | http://localhost:9080 | Browser |
+| Backend (App3) | 9081 | http://localhost:9081/api/health | `curl localhost:9081/api/health` |
+
+### Quick Start (Copy-Paste)
+
+```bash
+# Full standalone setup for App0 + App3
+cd ~ && mkdir -p the-6-apps && cd the-6-apps
+git clone https://github.com/zumanm1/auth-vault.git app0-auth-vault
+git clone https://github.com/zumanm1/ospf-nn-json.git app3-nn-json
+
+# Start App0
+cd app0-auth-vault && ./auth-vault.sh install && ./auth-vault.sh start
+cd ..
+
+# Start App3
+cd app3-nn-json
+./netviz.sh install && ./netviz.sh deps && ./netviz.sh start
+```
+
+---
+
 ## 📜 Available Scripts
 
 ### Setup Commands
