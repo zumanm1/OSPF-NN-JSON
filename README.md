@@ -34,6 +34,17 @@ cd OSPF-NN-JSON
 ./netviz.sh start
 ```
 
+### Important: Environment Setup
+
+Before starting, ensure the `.env` file exists:
+
+```bash
+# Copy the example environment file (first time only)
+cp .env.example .env
+```
+
+The `.env` file contains required settings like `JWT_SECRET`, `DB_PATH`, etc.
+
 ### 4. Manual Installation
 
 ```bash
